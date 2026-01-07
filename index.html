@@ -1,1 +1,240 @@
-index.html 
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>רשימת קניות חכמה</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7367f0">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: system-ui, sans-serif; 
+            background: #f4f7fa; 
+            padding-bottom: 180px; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+        }
+        
+        .bottom-bar { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: #7367f0; z-index: 1000; padding: 15px 15px 30px 15px; 
+            border-radius: 35px 35px 0 0; 
+            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .item-card {
+            background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column;
+        }
+
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(2px); 
+        }
+
+        /* אנימציה קטנה כשהמיקרופון עובד */
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .mic-active { animation: pulse-red 1.5s infinite; color: #ef4444 !important; }
+    </style>
+</head>
+<body>
+
+    <div id="priceModal" class="modal-overlay">
+        <div class="bg-white w-80 p-6 rounded-3xl text-center shadow-2xl">
+            <h2 class="text-lg font-bold mb-4 text-indigo-600">עדכון מחיר</h2>
+            <input type="number" id="newPriceInput" inputmode="decimal" class="w-full p-3 border rounded-xl mb-4 text-center text-xl font-bold outline-none">
+            <div class="flex gap-3">
+                <button onclick="confirmPriceUpdate()" class="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl">עדכן</button>
+                <button onclick="closePriceModal()" class="flex-1 py-3 bg-gray-100 font-bold rounded-xl text-gray-600">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto p-4">
+        <div class="bg-white rounded-2xl p-4 mb-4 flex justify-between items-center shadow-sm">
+            <div>
+                <h1 class="text-xl font-bold text-slate-800">הרשימה שלי</h1>
+                <span id="statusTag" class="text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block">מצב עריכה</span>
+            </div>
+            <button onclick="shareToWhatsApp()" class="p-2 text-indigo-500 bg-indigo-50 rounded-full">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.319 1.592 5.548 0 10.058-4.51 10.06-10.059.002-2.689-1.047-5.215-2.951-7.119-1.906-1.906-4.432-2.956-7.123-2.957-5.549 0-10.059 4.511-10.061 10.06-.001 2.105.56 4.111 1.621 5.895l-.997 3.638 3.732-.98zm11.367-7.404c-.3-.15-1.771-.874-2.046-.974-.275-.1-.475-.15-.675.15-.2.3-.775.974-.95 1.174-.175.2-.35.225-.65.075-.3-.15-1.265-.467-2.41-1.487-.892-.795-1.493-1.777-1.668-2.077-.175-.3-.018-.462.13-.611.134-.134.3-.35.45-.525.15-.175.2-.3.3-.5s.05-.375-.025-.525c-.075-.15-.675-1.625-.925-2.225-.244-.589-.493-.51-.675-.52l-.575-.01c-.2 0-.525.075-.8.375s-1.05 1.025-1.05 2.5 1.075 2.9 1.225 3.1c.15.2 2.115 3.23 5.125 4.53.716.31 1.274.495 1.71.635.72.23 1.375.197 1.893.12.577-.087 1.771-.725 2.021-1.425.25-.7.25-1.3.175-1.425-.075-.125-.275-.2-.575-.35z"/></svg>
+            </button>
+        </div>
+
+        <div id="inputForm" class="hidden bg-white p-5 rounded-3xl shadow-lg mb-4 border-2 border-indigo-400">
+            <div class="relative mb-3">
+                <input type="text" id="itemName" placeholder="שם המוצר" class="w-full p-3 pl-12 border rounded-xl outline-none">
+                <button id="voiceBtn" onclick="startVoiceRecognition()" class="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-indigo-400 transition-all">
+                    <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                    </svg>
+                </button>
+            </div>
+            <input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר" class="w-full p-3 border rounded-xl mb-3 outline-none">
+            <div class="flex gap-2">
+                <button onclick="addItem()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold">הוסף</button>
+                <button onclick="toggleInputForm()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">סגור</button>
+            </div>
+        </div>
+
+        <div id="itemsList"></div>
+    </div>
+
+    <div class="bottom-bar text-white">
+        <div class="flex justify-around mb-4 px-4 text-center">
+            <div><div class="text-[10px] opacity-70">סה"כ</div><div class="text-xl font-bold">₪<span id="totalSum">0.00</span></div></div>
+            <div class="w-px bg-white/20 h-8 self-center"></div>
+            <div><div class="text-[10px] opacity-70">שולם</div><div class="text-xl font-bold">₪<span id="paidSum">0.00</span></div></div>
+        </div>
+        <div class="flex items-center justify-around">
+            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-[#ff9f43] rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockPath" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+            </button>
+            <button onclick="toggleInputForm()" class="w-16 h-16 bg-[#28c76f] rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 active:scale-95 transition">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="4" d="M12 4v16m8-8H4"></path></svg>
+            </button>
+            <button onclick="openDeleteModal()" class="w-12 h-12 bg-[#ea5455] rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // לוגיקת זיהוי קולי
+        function startVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("מצטערים, הדפדפן שלך לא תומך בזיהוי קולי.");
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'he-IL'; // הגדרה לעברית
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            const micBtn = document.getElementById('voiceBtn');
+            const micIcon = document.getElementById('micIcon');
+
+            recognition.onstart = () => {
+                micIcon.classList.add('mic-active');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('itemName').value = transcript;
+            };
+
+            recognition.onspeechend = () => {
+                recognition.stop();
+                micIcon.classList.remove('mic-active');
+            };
+
+            recognition.onerror = () => {
+                micIcon.classList.remove('mic-active');
+                alert("הייתה בעיה בזיהוי הקולי. נסה שוב.");
+            };
+
+            recognition.start();
+        }
+
+        // שאר הפונקציות (addItem, render, openPriceModal וכו') מהגרסה הקודמת
+        let shoppingList = JSON.parse(localStorage.getItem('LIST_V6')) || [];
+        let isLocked = false;
+        let currentEditIndex = null;
+        let sortableInstance = null;
+
+        function render() {
+            const container = document.getElementById('itemsList');
+            container.innerHTML = '';
+            shoppingList.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "item-card";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${index})" class="w-6 h-6 rounded accent-indigo-600">
+                            <span class="text-xl font-bold text-slate-800 ${item.checked ? 'line-through text-slate-300' : ''}">${item.name}</span>
+                        </div>
+                        <button onclick="removeItem(${index})" class="text-red-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2 py-1">
+                            <button onclick="updateQty(${index}, 1)" class="text-green-500 font-bold text-xl px-2">+</button>
+                            <span class="font-bold text-lg text-slate-700 min-w-[20px] text-center">${item.qty}</span>
+                            <button onclick="updateQty(${index}, -1)" class="text-red-500 font-bold text-xl px-2">-</button>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span onclick="openPriceModal(${index})" class="text-lg font-bold text-indigo-600 cursor-pointer">₪${(item.unitPrice * item.qty).toFixed(2)}</span>
+                            <div class="drag-handle text-slate-300 text-xl cursor-grab ${isLocked ? 'hidden' : ''}">⠿</div>
+                        </div>
+                    </div>`;
+                container.appendChild(div);
+            });
+            calculate();
+            initSort();
+        }
+
+        function openPriceModal(index) { 
+            currentEditIndex = index; 
+            const input = document.getElementById('newPriceInput');
+            input.value = shoppingList[index].unitPrice; 
+            document.getElementById('priceModal').style.display = 'flex';
+            setTimeout(() => { input.focus(); input.select(); }, 150);
+        }
+        function closePriceModal() { document.getElementById('priceModal').style.display='none'; }
+        function confirmPriceUpdate() { 
+            shoppingList[currentEditIndex].unitPrice = parseFloat(document.getElementById('newPriceInput').value) || 0; 
+            closePriceModal(); save(); 
+        }
+        function toggleInputForm() { 
+            const form = document.getElementById('inputForm');
+            form.classList.toggle('hidden');
+            if(!form.classList.contains('hidden')) document.getElementById('itemName').focus();
+        }
+        function addItem() {
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            if(!name) return;
+            shoppingList.push({ id: Date.now().toString(), name, unitPrice: price, qty: 1, checked: false });
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            toggleInputForm();
+            save();
+        }
+        function calculate() {
+            const total = shoppingList.reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
+            const paid = shoppingList.filter(i => i.checked).reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
+            document.getElementById('totalSum').innerText = total.toFixed(2);
+            document.getElementById('paidSum').innerText = paid.toFixed(2);
+        }
+        function toggleCheck(index) { shoppingList[index].checked = !shoppingList[index].checked; save(); }
+        function updateQty(index, val) { if(shoppingList[index].qty + val >= 1) { shoppingList[index].qty += val; save(); } }
+        function removeItem(index) { shoppingList.splice(index, 1); save(); }
+        function save() { localStorage.setItem('LIST_V6', JSON.stringify(shoppingList)); render(); }
+        function initSort() { /* ... לוגיקת Sortable ... */ }
+
+        render();
+
+        // רישום ה-Service Worker כדי שהתקנת ה-PWA תעבוד
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
+
