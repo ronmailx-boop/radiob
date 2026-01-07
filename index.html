@@ -129,6 +129,7 @@
         let isLocked = false;
         let currentEditIndex = null;
         let sortableInstance = null;
+        let recognition = null; // אובייקט גלובלי כדי לשלוט בסגירה
 
         function render() {
             const container = document.getElementById('itemsList');
@@ -165,6 +166,72 @@
             initSort();
         }
 
+        function startVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert("לא נתמך"); return; }
+            
+            // אם כבר יש זיהוי פעיל, נעצור אותו קודם
+            if (recognition) { recognition.abort(); }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = 'he-IL';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            const micIcon = document.getElementById('micIcon');
+            const inputField = document.getElementById('itemName');
+            
+            inputField.value = ""; // מנקה את השדה פיזית ברגע הלחיצה
+
+            recognition.onstart = () => {
+                micIcon.classList.add('mic-active');
+            };
+
+            recognition.onresult = (event) => {
+                // לוקח רק את התוצאה האחרונה בלבד
+                const transcript = event.results[0][0].transcript;
+                inputField.value = transcript; 
+                recognition.stop();
+            };
+
+            recognition.onend = () => {
+                micIcon.classList.remove('mic-active');
+                recognition = null; // משמיד את האובייקט בסוף
+            };
+
+            recognition.start();
+        }
+
+        function toggleInputForm() { 
+            const form = document.getElementById('inputForm');
+            const nameInput = document.getElementById('itemName');
+            const priceInput = document.getElementById('itemPrice');
+            
+            form.classList.toggle('hidden');
+            
+            // כשסוגרים או פותחים, מוודאים שהשדות ריקים לחלוטין
+            nameInput.value = "";
+            priceInput.value = "";
+            
+            // עוצרים זיהוי קולי אם הוא פועל במקרה
+            if (recognition) { recognition.abort(); }
+        }
+
+        function addItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            if(!name) return;
+            
+            shoppingList.push({ id: Date.now().toString(), name, unitPrice: price, qty: 1, checked: false });
+            
+            // ניקוי מוחלט וסגירה
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            toggleInputForm();
+            save();
+        }
+
+        // --- שאר הפונקציות ללא שינוי לוגי אך עם וידוא תקינות ---
         function initSort() {
             const el = document.getElementById('itemsList');
             if (sortableInstance) sortableInstance.destroy();
@@ -178,34 +245,6 @@
                     }
                 });
             }
-        }
-
-        // זיהוי קולי משופר ומהיר
-        function startVoiceRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("לא נתמך"); return; }
-            
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'he-IL';
-            recognition.continuous = false;
-            recognition.interimResults = true; // מראה תוצאות תוך כדי דיבור
-
-            const micIcon = document.getElementById('micIcon');
-            const inputField = document.getElementById('itemName');
-            inputField.value = ""; // ניקוי השדה
-
-            recognition.onstart = () => {
-                micIcon.classList.add('mic-active');
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript;
-                inputField.value = transcript;
-                if (event.results[0].isFinal) recognition.stop();
-            };
-
-            recognition.onend = () => { micIcon.classList.remove('mic-active'); };
-            recognition.start();
         }
 
         function toggleLock() {
@@ -234,43 +273,23 @@
         }
 
         function closePriceModal() { document.getElementById('priceModal').style.display='none'; }
-        
         function confirmPriceUpdate() { 
             shoppingList[currentEditIndex].unitPrice = parseFloat(document.getElementById('newPriceInput').value) || 0; 
             closePriceModal(); save(); 
         }
-
-        function toggleInputForm() { 
-            document.getElementById('inputForm').classList.toggle('hidden');
-        }
-
-        function addItem() {
-            const name = document.getElementById('itemName').value.trim();
-            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
-            if(!name) return;
-            shoppingList.push({ id: Date.now().toString(), name, unitPrice: price, qty: 1, checked: false });
-            document.getElementById('itemName').value = '';
-            document.getElementById('itemPrice').value = '';
-            toggleInputForm();
-            save();
-        }
-
         function openDeleteModal() { if(shoppingList.length > 0) document.getElementById('deleteModal').style.display='flex'; }
         function closeDeleteModal() { document.getElementById('deleteModal').style.display='none'; }
         function confirmClearAll() { shoppingList = []; closeDeleteModal(); save(); }
-
         function calculate() {
             const total = shoppingList.reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
             const paid = shoppingList.filter(i => i.checked).reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
             document.getElementById('totalSum').innerText = total.toFixed(2);
             document.getElementById('paidSum').innerText = paid.toFixed(2);
         }
-
         function toggleCheck(index) { shoppingList[index].checked = !shoppingList[index].checked; save(); }
         function updateQty(index, val) { if(shoppingList[index].qty + val >= 1) { shoppingList[index].qty += val; save(); } }
         function removeItem(index) { shoppingList.splice(index, 1); save(); }
         function save() { localStorage.setItem('LIST_V6', JSON.stringify(shoppingList)); render(); }
-        
         function shareToWhatsApp() {
             if (shoppingList.length === 0) return;
             let text = "🛒 *רשימת הקניות שלי:*\n\n";
