@@ -180,40 +180,31 @@
             }
         }
 
-        // זיהוי קולי משופר - מופעל רק בלחיצה ומנקה טקסט קודם
+        // זיהוי קולי משופר ומהיר
         function startVoiceRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("מצטערים, הדפדפן שלך לא תומך בזיהוי קולי."); return; }
-
+            if (!SpeechRecognition) { alert("לא נתמך"); return; }
+            
             const recognition = new SpeechRecognition();
             recognition.lang = 'he-IL';
-            recognition.interimResults = false; // נקבל רק תוצאה סופית כדי למנוע כפילויות
-            recognition.continuous = false; // יעצור מיד כשאתה מפסיק לדבר
+            recognition.continuous = false;
+            recognition.interimResults = true; // מראה תוצאות תוך כדי דיבור
 
             const micIcon = document.getElementById('micIcon');
-            const itemNameInput = document.getElementById('itemName');
-
-            // ניקוי השדה לפני תחילת ההקלטה
-            itemNameInput.value = ""; 
+            const inputField = document.getElementById('itemName');
+            inputField.value = ""; // ניקוי השדה
 
             recognition.onstart = () => {
                 micIcon.classList.add('mic-active');
             };
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                itemNameInput.value = transcript; // מחליף את הטקסט הישן בחדש במקום להוסיף עליו
-                recognition.stop(); // עוצר מיד אחרי קבלת התוצאה
+                const transcript = event.results[event.results.length - 1][0].transcript;
+                inputField.value = transcript;
+                if (event.results[0].isFinal) recognition.stop();
             };
 
-            recognition.onend = () => {
-                micIcon.classList.remove('mic-active');
-            };
-
-            recognition.onerror = () => {
-                micIcon.classList.remove('mic-active');
-            };
-
+            recognition.onend = () => { micIcon.classList.remove('mic-active'); };
             recognition.start();
         }
 
@@ -241,33 +232,26 @@
             document.getElementById('priceModal').style.display = 'flex';
             setTimeout(() => { input.focus(); input.select(); }, 150);
         }
+
         function closePriceModal() { document.getElementById('priceModal').style.display='none'; }
+        
         function confirmPriceUpdate() { 
             shoppingList[currentEditIndex].unitPrice = parseFloat(document.getElementById('newPriceInput').value) || 0; 
             closePriceModal(); save(); 
         }
 
         function toggleInputForm() { 
-            const form = document.getElementById('inputForm');
-            form.classList.toggle('hidden');
-            // ביטלתי את ה-Focus האוטומטי כדי למנוע הפעלה של המקלדת/זיהוי קולי בלי רצון המשתמש
+            document.getElementById('inputForm').classList.toggle('hidden');
         }
 
         function addItem() {
-            const nameField = document.getElementById('itemName');
-            const priceField = document.getElementById('itemPrice');
-            const name = nameField.value.trim();
-            const price = parseFloat(priceField.value) || 0;
-
+            const name = document.getElementById('itemName').value.trim();
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
             if(!name) return;
-
             shoppingList.push({ id: Date.now().toString(), name, unitPrice: price, qty: 1, checked: false });
-            
-            // ניקוי יסודי של השדות אחרי ההוספה
-            nameField.value = ''; 
-            priceField.value = '';
-            
-            toggleInputForm(); 
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            toggleInputForm();
             save();
         }
 
@@ -296,6 +280,7 @@
         }
 
         render();
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     </script>
 </body>
 </html>
