@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>רשימת קניות חכמה</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#7367f0">
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="icon" type="image/png" href="icon.png">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     
@@ -19,49 +14,19 @@
             font-family: system-ui, sans-serif; 
             background: #f4f7fa; 
             padding-bottom: 180px; 
-            overflow-x: hidden; 
             min-height: 100vh;
         }
         
-        /* תיקון התפריט העליון למניעת חיתוך */
         .top-nav {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            padding: 10px;
-            border-radius: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 8px;
+            background: white; padding: 10px; border-radius: 20px;
+            margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .list-dropdown {
-            flex: 1;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 8px;
-            font-weight: bold;
-            color: #7367f0;
-            outline: none;
-            min-width: 0; /* מונע מה-select לדחוף החוצה */
-        }
-
-        .add-list-btn {
-            background: #7367f0;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 12px;
-            font-weight: bold;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .bottom-bar { 
-            position: fixed; bottom: 0; left: 0; right: 0; 
-            background: #7367f0; z-index: 1000; padding: 15px 15px 30px 15px; 
-            border-radius: 35px 35px 0 0; 
-            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15);
+            flex: 1; background: #f8f9fa; border: 1px solid #e9ecef;
+            border-radius: 12px; padding: 8px; font-weight: bold;
+            color: #7367f0; outline: none; min-width: 0;
         }
 
         .item-card {
@@ -69,15 +34,21 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column;
         }
 
+        .bottom-bar { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: #7367f0; z-index: 1000; padding: 15px 15px 30px 15px; 
+            border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15);
+        }
+
         .modal-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(2px); 
         }
 
-        .editable-title {
-            border: none; background: transparent; font-weight: bold; font-size: 1.25rem;
-            width: 100%; outline: none; color: #1e293b;
+        .editable-input {
+            border: none; background: transparent; font-weight: bold; outline: none; color: #1e293b;
         }
+        .editable-input:focus { border-bottom: 1px solid #7367f0; }
     </style>
 </head>
 <body>
@@ -93,19 +64,26 @@
         </div>
     </div>
 
+    <div id="deleteModal" class="modal-overlay">
+        <div class="bg-white w-80 p-6 rounded-3xl text-center shadow-2xl">
+            <h2 class="text-lg font-bold mb-4">למחוק את כל הרשימה?</h2>
+            <div class="flex gap-3">
+                <button onclick="confirmClearAll()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl">מחק הכל</button>
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-100 font-bold rounded-xl text-gray-600">ביטול</button>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-md mx-auto p-4">
         
         <div class="top-nav">
-            <select id="listSelector" onchange="switchList(this.value)" class="list-dropdown">
-                </select>
-            <button onclick="createNewList()" class="add-list-btn">
-                + חדש
-            </button>
+            <select id="listSelector" onchange="switchList(this.value)" class="list-dropdown"></select>
+            <button onclick="createNewList()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold flex-shrink-0">+ חדש</button>
         </div>
 
         <div class="bg-white rounded-2xl p-4 mb-4 flex justify-between items-center shadow-sm">
             <div class="flex-grow">
-                <input type="text" id="listNameInput" class="editable-title" onblur="updateListName(this.value)">
+                <input type="text" id="listNameInput" class="editable-input text-xl" onblur="updateListName(this.value)">
                 <span id="statusTag" class="text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block">מצב עריכה</span>
             </div>
             <button onclick="shareToWhatsApp()" class="p-2 text-indigo-500 bg-indigo-50 rounded-full">
@@ -131,7 +109,6 @@
             <div class="w-px bg-white/20 h-8 self-center"></div>
             <div><div class="text-[10px] opacity-70">שולם</div><div class="text-xl font-bold">₪<span id="paidSum">0.00</span></div></div>
         </div>
-        
         <div class="flex items-center justify-around">
             <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-[#ff9f43] rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockPath" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
@@ -146,7 +123,6 @@
     </div>
 
     <script>
-        // לוגיקת ניהול רשימות
         let listsData = JSON.parse(localStorage.getItem('LISTS_APP_V1')) || {
             currentListId: 'list_1',
             lists: { 'list_1': { name: 'הרשימה שלי', items: [] } }
@@ -154,7 +130,6 @@
 
         let currentListId = listsData.currentListId;
         let isLocked = false;
-        let currentEditIndex = null;
         let sortableInstance = null;
 
         function updateSelector() {
@@ -162,11 +137,16 @@
             selector.innerHTML = '';
             for (const id in listsData.lists) {
                 const opt = document.createElement('option');
-                opt.value = id;
-                opt.innerText = listsData.lists[id].name;
+                opt.value = id; opt.innerText = listsData.lists[id].name;
                 opt.selected = (id === currentListId);
                 selector.appendChild(opt);
             }
+        }
+
+        function switchList(id) {
+            currentListId = id; listsData.currentListId = id;
+            document.getElementById('listNameInput').value = listsData.lists[id].name;
+            save(); updateSelector();
         }
 
         function createNewList() {
@@ -175,19 +155,14 @@
             switchList(newId);
         }
 
-        function switchList(id) {
-            currentListId = id;
-            listsData.currentListId = id;
-            document.getElementById('listNameInput').value = listsData.lists[id].name;
-            save();
-            render();
-            updateSelector();
-        }
-
         function updateListName(newName) {
             listsData.lists[currentListId].name = newName || "רשימה ללא שם";
+            save(); updateSelector();
+        }
+
+        function updateItemName(index, newName) {
+            listsData.lists[currentListId].items[index].name = newName || "מוצר";
             save();
-            updateSelector();
         }
 
         function render() {
@@ -200,11 +175,13 @@
                 div.className = "item-card";
                 div.innerHTML = `
                     <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 flex-grow">
                             <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${index})" class="w-6 h-6 rounded accent-indigo-600">
-                            <span class="text-xl font-bold text-slate-800 ${item.checked ? 'line-through text-slate-300' : ''}">${item.name}</span>
+                            <input type="text" value="${item.name}" 
+                                   class="editable-input text-xl flex-grow ${item.checked ? 'line-through text-slate-300' : 'text-slate-800'}" 
+                                   onblur="updateItemName(${index}, this.value)">
                         </div>
-                        <button onclick="removeItem(${index})" class="text-red-400">
+                        <button onclick="removeItem(${index})" class="text-red-400 mr-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
@@ -226,8 +203,26 @@
             initSort();
         }
 
-        // שאר הפונקציות נשארות זהות למקור...
-        function save() { localStorage.setItem('LISTS_APP_V1', JSON.stringify(listsData)); render(); }
+        function initSort() {
+            const el = document.getElementById('itemsList');
+            if (sortableInstance) sortableInstance.destroy();
+            if (!isLocked) {
+                sortableInstance = Sortable.create(el, {
+                    handle: '.drag-handle', animation: 150,
+                    onEnd: (evt) => {
+                        const items = listsData.lists[currentListId].items;
+                        const movedItem = items.splice(evt.oldIndex, 1)[0];
+                        items.splice(evt.newIndex, 0, movedItem);
+                        save(false); // שומר בלי לרנדר מחדש כדי לא להרוס את הגרירה
+                    }
+                });
+            }
+        }
+
+        function openDeleteModal() { document.getElementById('deleteModal').style.display='flex'; }
+        function closeDeleteModal() { document.getElementById('deleteModal').style.display='none'; }
+        function confirmClearAll() { listsData.lists[currentListId].items = []; closeDeleteModal(); save(); }
+
         function calculate() {
             const items = listsData.lists[currentListId].items;
             const total = items.reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
@@ -235,9 +230,16 @@
             document.getElementById('totalSum').innerText = total.toFixed(2);
             document.getElementById('paidSum').innerText = paid.toFixed(2);
         }
+
+        function save(shouldRender = true) { 
+            localStorage.setItem('LISTS_APP_V1', JSON.stringify(listsData)); 
+            if(shouldRender) render(); 
+        }
+
         function toggleCheck(index) { listsData.lists[currentListId].items[index].checked = !listsData.lists[currentListId].items[index].checked; save(); }
         function updateQty(index, val) { if(listsData.lists[currentListId].items[index].qty + val >= 1) { listsData.lists[currentListId].items[index].qty += val; save(); } }
         function removeItem(index) { listsData.lists[currentListId].items.splice(index, 1); save(); }
+        function toggleInputForm() { document.getElementById('inputForm').classList.toggle('hidden'); }
         function addItem() {
             const name = document.getElementById('itemName').value;
             const price = parseFloat(document.getElementById('itemPrice').value) || 0;
@@ -246,18 +248,46 @@
             document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = '';
             toggleInputForm(); save();
         }
-        function toggleInputForm() { document.getElementById('inputForm').classList.toggle('hidden'); }
-        function initSort() { /* לוגיקת Sortable... */ }
-        function toggleLock() { isLocked = !isLocked; render(); }
-        function shareToWhatsApp() { /* לוגיקת WhatsApp... */ }
-        function openPriceModal(i) { currentEditIndex = i; document.getElementById('newPriceInput').value = listsData.lists[currentListId].items[i].unitPrice; document.getElementById('priceModal').style.display = 'flex'; }
-        function closePriceModal() { document.getElementById('priceModal').style.display = 'none'; }
-        function confirmPriceUpdate() { listsData.lists[currentListId].items[currentEditIndex].unitPrice = parseFloat(document.getElementById('newPriceInput').value) || 0; closePriceModal(); save(); }
 
-        // אתחול
+        function openPriceModal(i) { 
+            currentEditIndex = i; 
+            document.getElementById('newPriceInput').value = listsData.lists[currentListId].items[i].unitPrice; 
+            document.getElementById('priceModal').style.display = 'flex'; 
+        }
+        function closePriceModal() { document.getElementById('priceModal').style.display = 'none'; }
+        function confirmPriceUpdate() { 
+            listsData.lists[currentListId].items[currentEditIndex].unitPrice = parseFloat(document.getElementById('newPriceInput').value) || 0; 
+            closePriceModal(); save(); 
+        }
+
+        function toggleLock() {
+            isLocked = !isLocked;
+            const btn = document.getElementById('lockBtn');
+            const path = document.getElementById('lockPath');
+            const tag = document.getElementById('statusTag');
+            if (isLocked) {
+                btn.style.backgroundColor = "#48a9f8";
+                tag.innerText = "נעול";
+                path.setAttribute('d', "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z");
+            } else {
+                btn.style.backgroundColor = "#ff9f43";
+                tag.innerText = "מצב עריכה";
+                path.setAttribute('d', "M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z");
+            }
+            render();
+        }
+
+        function shareToWhatsApp() {
+            const list = listsData.lists[currentListId];
+            if (list.items.length === 0) return;
+            let text = `🛒 *${list.name}:*\n\n`;
+            list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.unitPrice * i.qty).toFixed(2)}\n`);
+            text += `\n💰 *סה"כ: ₪${document.getElementById('totalSum').innerText}*`;
+            window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank');
+        }
+
         document.getElementById('listNameInput').value = listsData.lists[currentListId].name;
-        updateSelector();
-        render();
+        updateSelector(); render();
     </script>
 </body>
 </html>
