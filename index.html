@@ -3,30 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ניהול תקציב וקניות</title>
+    <title>ניהול תקציב וקניות חכם</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 220px; min-height: 100vh; }
+        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 220px; min-height: 100vh; overflow-x: hidden; }
         
-        .top-nav-card { background: white; border-radius: 20px; padding: 12px; margin-bottom: 15px; shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        /* עיצוב התפריט העליון */
+        .top-nav-card { background: white; border-radius: 20px; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         
+        /* כרטיסי מוצרים וסיכום */
         .item-card, .summary-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 
         .bottom-bar { 
             position: fixed; bottom: 0; left: 0; right: 0; 
             background: #7367f0; z-index: 1000; padding: 15px 15px 35px 15px; 
-            border-radius: 35px 35px 0 0; 
+            border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15);
         }
 
-        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; }
-        .tab-active { background: #7367f0; color: white; }
-        .tab-inactive { background: #eee; color: #666; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
+        .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
+        .tab-inactive { background: white; color: #666; }
 
-        .editable-input { border: none; background: transparent; font-weight: bold; outline: none; width: 100%; }
+        /* תיקון הצגת טקסט ארוך */
+        .editable-input { 
+            border: none; background: transparent; font-weight: bold; outline: none; width: 100%; 
+            white-space: normal; /* מאפשר ירידת שורה */
+            word-wrap: break-word; 
+            display: block;
+            line-height: 1.2;
+        }
+        
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
     </style>
 </head>
@@ -47,7 +57,7 @@
         <div class="bg-white w-80 p-6 rounded-3xl text-center shadow-2xl">
             <h2 class="text-lg font-bold mb-4">למחוק את כל המוצרים?</h2>
             <div class="flex gap-3">
-                <button onclick="confirmClearAll()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl">מחק</button>
+                <button onclick="confirmClearAll()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl">מחק הכל</button>
                 <button onclick="closeModal('deleteModal')" class="flex-1 py-3 bg-gray-100 font-bold rounded-xl">ביטול</button>
             </div>
         </div>
@@ -55,31 +65,36 @@
 
     <div class="max-w-md mx-auto p-4">
         
-        <div class="flex gap-2 mb-4">
-            <div id="tabLists" onclick="showPage('lists')" class="tab-btn tab-active">הרשימות שלי</div>
-            <div id="tabSummary" onclick="showPage('summary')" class="tab-btn tab-inactive">סיכום תקציב</div>
+        <div class="flex gap-3 mb-6">
+            <div id="tabLists" onclick="showPage('lists')" class="tab-btn tab-active shadow-sm">הרשימות שלי</div>
+            <div id="tabSummary" onclick="showPage('summary')" class="tab-btn tab-inactive shadow-sm">סיכום תקציב</div>
         </div>
 
         <div id="pageLists">
             <div class="top-nav-card flex gap-2 items-center">
-                <select id="listSelector" onchange="switchList(this.value)" class="flex-1 p-2 bg-gray-50 rounded-lg font-bold outline-none text-indigo-600"></select>
-                <button onclick="createNewList()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold">+ חדש</button>
+                <select id="listSelector" onchange="switchList(this.value)" class="flex-1 p-2 bg-gray-50 rounded-lg font-bold outline-none text-indigo-600 min-w-0"></select>
+                <button onclick="createNewList()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold flex-shrink-0">+ רשימה</button>
             </div>
 
             <div class="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100">
                 <div class="flex justify-between items-start mb-2">
-                    <input type="text" id="listNameDisplay" class="editable-input text-2xl" onblur="updateCurrentListName(this.value)">
-                    <button onclick="deleteEntireList()" class="text-red-400 p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    <div class="flex-1 min-w-0">
+                        <input type="text" id="listNameDisplay" class="editable-input text-2xl" onblur="updateCurrentListName(this.value)">
+                        <div id="statusTag" class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold mt-1">מצב עריכה</div>
+                    </div>
+                    <div class="flex gap-1 flex-shrink-0">
+                        <button onclick="shareToWhatsApp()" class="p-2 text-indigo-500 bg-indigo-50 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.319 1.592 5.548 0 10.058-4.51 10.06-10.059.002-2.689-1.047-5.215-2.951-7.119-1.906-1.906-4.432-2.956-7.123-2.957-5.549 0-10.059 4.511-10.061 10.06-.001 2.105.56 4.111 1.621 5.895l-.997 3.638 3.732-.98zm11.367-7.404c-.3-.15-1.771-.874-2.046-.974-.275-.1-.475-.15-.675.15-.2.3-.775.974-.95 1.174-.175.2-.35.225-.65.075-.3-.15-1.265-.467-2.41-1.487-.892-.795-1.493-1.777-1.668-2.077-.175-.3-.018-.462.13-.611.134-.134.3-.35.45-.525.15-.175.2-.3.3-.5s.05-.375-.025-.525c-.075-.15-.675-1.625-.925-2.225-.244-.589-.493-.51-.675-.52l-.575-.01c-.2 0-.525.075-.8.375s-1.05 1.025-1.05 2.5 1.075 2.9 1.225 3.1c.15.2 2.115 3.23 5.125 4.53.716.31 1.274.495 1.71.635.72.23 1.375.197 1.893.12.577-.087 1.771-.725 2.021-1.425.25-.7.25-1.3.175-1.425-.075-.125-.275-.2-.575-.35z"/></svg></button>
+                        <button onclick="deleteEntireList()" class="p-2 text-red-500 bg-red-50 rounded-full"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </div>
                 </div>
-                <div id="statusTag" class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">מצב עריכה</div>
             </div>
 
             <div id="inputForm" class="hidden bg-white p-5 rounded-3xl shadow-lg mb-4 border-2 border-indigo-400">
-                <input type="text" id="itemName" placeholder="שם המוצר" class="w-full p-3 border rounded-xl mb-3 outline-none">
+                <input type="text" id="itemName" placeholder="שם המוצר (למשל: הפניקס ביטוח מקיף)" class="w-full p-3 border rounded-xl mb-3 outline-none">
                 <input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר" class="w-full p-3 border rounded-xl mb-3 outline-none">
                 <div class="flex gap-2">
-                    <button onclick="addItem()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold">הוסף</button>
-                    <button onclick="toggleInputForm()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">ביטול</button>
+                    <button onclick="addItem()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold text-lg">הוסף</button>
+                    <button onclick="toggleInputForm()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">סגור</button>
                 </div>
             </div>
 
@@ -87,7 +102,7 @@
         </div>
 
         <div id="pageSummary" class="hidden">
-            <h2 class="text-xl font-bold mb-4 text-slate-700">סיכום תקציב כולל</h2>
+            <h2 class="text-xl font-bold mb-4 text-slate-700 px-1">ריכוז תקציבים</h2>
             <div id="summaryContainer"></div>
         </div>
     </div>
@@ -100,46 +115,47 @@
         </div>
         
         <div id="footerActions" class="flex items-center justify-around">
-            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center shadow-lg transition">
+            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-[#ff9f43] rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockPath" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
             </button>
-            <button onclick="toggleInputForm()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20">
+            <button onclick="toggleInputForm()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 active:scale-95 transition">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="4" d="M12 4v16m8-8H4"></path></svg>
             </button>
-            <button onclick="openModal('deleteModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+            <button onclick="openModal('deleteModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
         </div>
     </div>
 
     <script>
-        // אתחול נתונים
-        let db = JSON.parse(localStorage.getItem('BUDGET_APP_V1')) || {
+        // בסיס נתונים
+        let db = JSON.parse(localStorage.getItem('BUDGET_APP_FINAL')) || {
             currentId: 'L1',
             selectedInSummary: [],
-            lists: { 'L1': { name: 'רשימה ראשונה', items: [] } }
+            lists: { 'L1': { name: 'הרשימה שלי', items: [] } }
         };
 
         let isLocked = false;
         let activePage = 'lists';
         let editIdx = null;
+        let sortableInstance = null;
 
         function save() {
-            localStorage.setItem('BUDGET_APP_V1', JSON.stringify(db));
+            localStorage.setItem('BUDGET_APP_FINAL', JSON.stringify(db));
             render();
         }
 
         function showPage(page) {
             activePage = page;
-            document.getElementById('pageLists').style.display = page === 'lists' ? 'block' : 'none';
-            document.getElementById('pageSummary').style.display = page === 'summary' ? 'block' : 'none';
-            document.getElementById('footerActions').style.display = page === 'lists' ? 'flex' : 'none';
+            document.getElementById('pageLists').style.display = (page === 'lists') ? 'block' : 'none';
+            document.getElementById('pageSummary').style.display = (page === 'summary') ? 'block' : 'none';
+            document.getElementById('footerActions').style.display = (page === 'lists') ? 'flex' : 'none';
             
             document.getElementById('tabLists').className = `tab-btn ${page === 'lists' ? 'tab-active' : 'tab-inactive'}`;
             document.getElementById('tabSummary').className = `tab-btn ${page === 'summary' ? 'tab-active' : 'tab-inactive'}`;
             
-            document.getElementById('labelTotal').innerText = page === 'lists' ? 'סה"כ רשימה' : 'סה"כ נבחרות';
-            document.getElementById('labelPaid').innerText = page === 'lists' ? 'שולם ברשימה' : 'שולם בנבחרות';
+            document.getElementById('labelTotal').innerText = (page === 'lists') ? 'סה"כ רשימה' : 'סה"כ נבחרות';
+            document.getElementById('labelPaid').innerText = (page === 'lists') ? 'שולם ברשימה' : 'שולם בנבחרות';
             
             render();
         }
@@ -166,12 +182,17 @@
                 const div = document.createElement('div');
                 div.className = "item-card";
                 div.innerHTML = `
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3 flex-1">
-                            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-6 h-6 accent-indigo-600">
-                            <input type="text" value="${item.name}" onblur="updateItemName(${idx}, this.value)" class="editable-input text-xl ${item.checked ? 'line-through text-gray-300' : ''}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-start gap-3 flex-1 min-w-0">
+                            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-6 h-6 mt-1 accent-indigo-600 flex-shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <input type="text" value="${item.name}" onblur="updateItemName(${idx}, this.value)" 
+                                       class="editable-input text-xl ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'}">
+                            </div>
                         </div>
-                        <button onclick="removeItem(${idx})" class="text-red-300 ml-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        <button onclick="removeItem(${idx})" class="text-red-300 p-1 flex-shrink-0 ml-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                     </div>
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-2 py-1 border border-gray-100">
@@ -180,8 +201,8 @@
                             <button onclick="qty(${idx}, -1)" class="text-red-500 font-bold text-xl px-2">-</button>
                         </div>
                         <div class="flex items-center gap-4">
-                            <span onclick="openPriceModal(${idx})" class="text-lg font-bold text-indigo-600">₪${subTotal.toFixed(2)}</span>
-                            <div class="drag-handle text-gray-300 text-xl ${isLocked ? 'hidden' : ''}">⠿</div>
+                            <span onclick="openPriceModal(${idx})" class="text-lg font-bold text-indigo-600 cursor-pointer">₪${subTotal.toFixed(2)}</span>
+                            <div class="drag-handle text-gray-300 text-xl cursor-grab ${isLocked ? 'hidden' : ''}">⠿</div>
                         </div>
                     </div>
                 `;
@@ -215,7 +236,7 @@
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSummarySelect('${id}')" class="w-6 h-6 accent-indigo-600">
-                        <span class="font-bold text-slate-700">${list.name}</span>
+                        <span class="font-bold text-slate-700 text-lg">${list.name}</span>
                     </div>
                     <div class="text-left">
                         <div class="text-xs text-gray-400">סה"כ: ₪${lTotal.toFixed(2)}</div>
@@ -229,7 +250,6 @@
             document.getElementById('displayPaid').innerText = tPaid.toFixed(2);
         }
 
-        // פונקציות עזר
         function updateListSelector() {
             const s = document.getElementById('listSelector');
             s.innerHTML = '';
@@ -266,7 +286,11 @@
             if (item.qty + v >= 1) { item.qty += v; save(); }
         }
         function removeItem(idx) { db.lists[db.currentId].items.splice(idx, 1); save(); }
-        function toggleInputForm() { document.getElementById('inputForm').classList.toggle('hidden'); }
+        function toggleInputForm() { 
+            document.getElementById('inputForm').classList.toggle('hidden');
+            if(!document.getElementById('inputForm').classList.contains('hidden')) document.getElementById('itemName').focus();
+        }
+        
         function addItem() {
             const n = document.getElementById('itemName').value;
             const p = parseFloat(document.getElementById('itemPrice').value) || 0;
@@ -306,7 +330,7 @@
             const tag = document.getElementById('statusTag');
             btn.style.backgroundColor = isLocked ? "#48a9f8" : "#ff9f43";
             tag.innerText = isLocked ? "נעול" : "מצב עריכה";
-            tag.className = isLocked ? "inline-block bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold" : "inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold";
+            tag.className = isLocked ? "inline-block bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold mt-1" : "inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold mt-1";
             path.setAttribute('d', isLocked ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z");
             render();
         }
@@ -319,12 +343,20 @@
                     const items = db.lists[db.currentId].items;
                     const item = items.splice(e.oldIndex, 1)[0];
                     items.splice(e.newIndex, 0, item);
-                    localStorage.setItem('BUDGET_APP_V1', JSON.stringify(db));
+                    localStorage.setItem('BUDGET_APP_FINAL', JSON.stringify(db));
                 }});
             }
         }
 
-        // הפעלה ראשונית
+        function shareToWhatsApp() {
+            const list = db.lists[db.currentId];
+            if (list.items.length === 0) return;
+            let text = `🛒 *${list.name}:*\n\n`;
+            list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`);
+            text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`;
+            window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank');
+        }
+
         render();
     </script>
 </body>
