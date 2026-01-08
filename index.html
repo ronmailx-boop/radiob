@@ -12,11 +12,9 @@
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 220px; min-height: 100vh; overflow-x: hidden; }
         
-        /* עיצוב התפריט העליון */
         .top-nav-card { background: white; border-radius: 20px; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         
-        /* כרטיסי מוצרים וסיכום */
-        .item-card, .summary-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .item-card, .summary-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all 0.2s; }
 
         .bottom-bar { 
             position: fixed; bottom: 0; left: 0; right: 0; 
@@ -28,13 +26,11 @@
         .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
         .tab-inactive { background: white; color: #666; }
 
-        /* תיקון הצגת טקסט ארוך */
-        .editable-input { 
+        /* שדה טקסט חכם שגדל עם התוכן */
+        .auto-expand-input { 
             border: none; background: transparent; font-weight: bold; outline: none; width: 100%; 
-            white-space: normal; /* מאפשר ירידת שורה */
-            word-wrap: break-word; 
-            display: block;
-            line-height: 1.2;
+            resize: none; overflow: hidden; display: block; line-height: 1.3;
+            min-height: 1.5em; font-family: inherit;
         }
         
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
@@ -64,7 +60,6 @@
     </div>
 
     <div class="max-w-md mx-auto p-4">
-        
         <div class="flex gap-3 mb-6">
             <div id="tabLists" onclick="showPage('lists')" class="tab-btn tab-active shadow-sm">הרשימות שלי</div>
             <div id="tabSummary" onclick="showPage('summary')" class="tab-btn tab-inactive shadow-sm">סיכום תקציב</div>
@@ -77,9 +72,9 @@
             </div>
 
             <div class="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100">
-                <div class="flex justify-between items-start mb-2">
+                <div class="flex justify-between items-start">
                     <div class="flex-1 min-w-0">
-                        <input type="text" id="listNameDisplay" class="editable-input text-2xl" onblur="updateCurrentListName(this.value)">
+                        <textarea id="listNameDisplay" class="auto-expand-input text-2xl" rows="1" oninput="autoExpand(this)" onblur="updateCurrentListName(this.value)"></textarea>
                         <div id="statusTag" class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold mt-1">מצב עריכה</div>
                     </div>
                     <div class="flex gap-1 flex-shrink-0">
@@ -115,20 +110,19 @@
         </div>
         
         <div id="footerActions" class="flex items-center justify-around">
-            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-[#ff9f43] rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
+            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-[#ff9f43] rounded-full flex items-center justify-center shadow-lg transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockPath" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
             </button>
-            <button onclick="toggleInputForm()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 active:scale-95 transition">
+            <button onclick="toggleInputForm()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="4" d="M12 4v16m8-8H4"></path></svg>
             </button>
-            <button onclick="openModal('deleteModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
+            <button onclick="openModal('deleteModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
         </div>
     </div>
 
     <script>
-        // בסיס נתונים
         let db = JSON.parse(localStorage.getItem('BUDGET_APP_FINAL')) || {
             currentId: 'L1',
             selectedInSummary: [],
@@ -140,6 +134,11 @@
         let editIdx = null;
         let sortableInstance = null;
 
+        function autoExpand(el) {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+        }
+
         function save() {
             localStorage.setItem('BUDGET_APP_FINAL', JSON.stringify(db));
             render();
@@ -150,13 +149,10 @@
             document.getElementById('pageLists').style.display = (page === 'lists') ? 'block' : 'none';
             document.getElementById('pageSummary').style.display = (page === 'summary') ? 'block' : 'none';
             document.getElementById('footerActions').style.display = (page === 'lists') ? 'flex' : 'none';
-            
             document.getElementById('tabLists').className = `tab-btn ${page === 'lists' ? 'tab-active' : 'tab-inactive'}`;
             document.getElementById('tabSummary').className = `tab-btn ${page === 'summary' ? 'tab-active' : 'tab-inactive'}`;
-            
             document.getElementById('labelTotal').innerText = (page === 'lists') ? 'סה"כ רשימה' : 'סה"כ נבחרות';
             document.getElementById('labelPaid').innerText = (page === 'lists') ? 'שולם ברשימה' : 'שולם בנבחרות';
-            
             render();
         }
 
@@ -168,10 +164,12 @@
         function renderListsPage() {
             updateListSelector();
             const list = db.lists[db.currentId];
-            document.getElementById('listNameDisplay').value = list.name;
+            const nameEl = document.getElementById('listNameDisplay');
+            nameEl.value = list.name;
+            setTimeout(() => autoExpand(nameEl), 0);
+
             const container = document.getElementById('itemsContainer');
             container.innerHTML = '';
-
             let total = 0, paid = 0;
 
             list.items.forEach((item, idx) => {
@@ -186,8 +184,8 @@
                         <div class="flex items-start gap-3 flex-1 min-w-0">
                             <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-6 h-6 mt-1 accent-indigo-600 flex-shrink-0">
                             <div class="flex-1 min-w-0">
-                                <input type="text" value="${item.name}" onblur="updateItemName(${idx}, this.value)" 
-                                       class="editable-input text-xl ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'}">
+                                <textarea class="auto-expand-input text-xl ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'}" 
+                                          rows="1" oninput="autoExpand(this)" onblur="updateItemName(${idx}, this.value)">${item.name}</textarea>
                             </div>
                         </div>
                         <button onclick="removeItem(${idx})" class="text-red-300 p-1 flex-shrink-0 ml-1">
@@ -207,8 +205,9 @@
                     </div>
                 `;
                 container.appendChild(div);
+                const ta = div.querySelector('textarea');
+                autoExpand(ta);
             });
-
             document.getElementById('displayTotal').innerText = total.toFixed(2);
             document.getElementById('displayPaid').innerText = paid.toFixed(2);
             initSortable();
@@ -218,34 +217,29 @@
             const container = document.getElementById('summaryContainer');
             container.innerHTML = '';
             let tTotal = 0, tPaid = 0;
-
             Object.keys(db.lists).forEach(id => {
                 const list = db.lists[id];
                 let lTotal = 0, lPaid = 0;
                 list.items.forEach(i => {
                     const s = i.price * i.qty;
-                    lTotal += s;
-                    if (i.checked) lPaid += s;
+                    lTotal += s; if (i.checked) lPaid += s;
                 });
-
                 const isSel = db.selectedInSummary.includes(id);
                 if (isSel) { tTotal += lTotal; tPaid += lPaid; }
-
                 const div = document.createElement('div');
                 div.className = "summary-card flex justify-between items-center";
                 div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSummarySelect('${id}')" class="w-6 h-6 accent-indigo-600">
-                        <span class="font-bold text-slate-700 text-lg">${list.name}</span>
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSummarySelect('${id}')" class="w-6 h-6 accent-indigo-600 flex-shrink-0">
+                        <span class="font-bold text-slate-700 text-lg truncate">${list.name}</span>
                     </div>
-                    <div class="text-left">
-                        <div class="text-xs text-gray-400">סה"כ: ₪${lTotal.toFixed(2)}</div>
-                        <div class="text-xs text-indigo-500 font-bold">שולם: ₪${lPaid.toFixed(2)}</div>
+                    <div class="text-left flex-shrink-0 ml-2">
+                        <div class="text-xs text-gray-400">₪${lTotal.toFixed(2)}</div>
+                        <div class="text-xs text-indigo-500 font-bold">₪${lPaid.toFixed(2)}</div>
                     </div>
                 `;
                 container.appendChild(div);
             });
-
             document.getElementById('displayTotal').innerText = tTotal.toFixed(2);
             document.getElementById('displayPaid').innerText = tPaid.toFixed(2);
         }
@@ -268,7 +262,6 @@
             db.currentId = id;
             save();
         }
-
         function deleteEntireList() {
             if (Object.keys(db.lists).length <= 1) return alert("אי אפשר למחוק את הרשימה האחרונה");
             if (confirm("מחק רשימה זו לצמיתות?")) {
@@ -277,52 +270,31 @@
                 save();
             }
         }
-
         function updateCurrentListName(v) { db.lists[db.currentId].name = v || "ללא שם"; save(); }
         function updateItemName(idx, v) { db.lists[db.currentId].items[idx].name = v || "מוצר"; save(); }
         function toggleItem(idx) { db.lists[db.currentId].items[idx].checked = !db.lists[db.currentId].items[idx].checked; save(); }
-        function qty(idx, v) { 
-            const item = db.lists[db.currentId].items[idx];
-            if (item.qty + v >= 1) { item.qty += v; save(); }
-        }
+        function qty(idx, v) { const item = db.lists[db.currentId].items[idx]; if (item.qty + v >= 1) { item.qty += v; save(); } }
         function removeItem(idx) { db.lists[db.currentId].items.splice(idx, 1); save(); }
-        function toggleInputForm() { 
-            document.getElementById('inputForm').classList.toggle('hidden');
-            if(!document.getElementById('inputForm').classList.contains('hidden')) document.getElementById('itemName').focus();
-        }
-        
+        function toggleInputForm() { document.getElementById('inputForm').classList.toggle('hidden'); if(!document.getElementById('inputForm').classList.contains('hidden')) document.getElementById('itemName').focus(); }
         function addItem() {
             const n = document.getElementById('itemName').value;
             const p = parseFloat(document.getElementById('itemPrice').value) || 0;
             if (!n) return;
             db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false });
-            document.getElementById('itemName').value = '';
-            document.getElementById('itemPrice').value = '';
-            toggleInputForm();
-            save();
+            document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = '';
+            toggleInputForm(); save();
         }
-
         function toggleSummarySelect(id) {
             const i = db.selectedInSummary.indexOf(id);
             if (i > -1) db.selectedInSummary.splice(i, 1);
             else db.selectedInSummary.push(id);
             save();
         }
-
-        function openPriceModal(idx) { 
-            editIdx = idx; 
-            document.getElementById('newPriceInput').value = db.lists[db.currentId].items[idx].price;
-            document.getElementById('priceModal').style.display = 'flex';
-            setTimeout(() => document.getElementById('newPriceInput').select(), 100);
-        }
+        function openPriceModal(idx) { editIdx = idx; document.getElementById('newPriceInput').value = db.lists[db.currentId].items[idx].price; document.getElementById('priceModal').style.display = 'flex'; setTimeout(() => document.getElementById('newPriceInput').select(), 100); }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function confirmPriceUpdate() {
-            db.lists[db.currentId].items[editIdx].price = parseFloat(document.getElementById('newPriceInput').value) || 0;
-            closeModal('priceModal'); save();
-        }
+        function confirmPriceUpdate() { db.lists[db.currentId].items[editIdx].price = parseFloat(document.getElementById('newPriceInput').value) || 0; closeModal('priceModal'); save(); }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function confirmClearAll() { db.lists[db.currentId].items = []; closeModal('deleteModal'); save(); }
-
         function toggleLock() {
             isLocked = !isLocked;
             const btn = document.getElementById('lockBtn');
@@ -334,7 +306,6 @@
             path.setAttribute('d', isLocked ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z");
             render();
         }
-
         function initSortable() {
             const el = document.getElementById('itemsContainer');
             if (sortableInstance) sortableInstance.destroy();
@@ -347,7 +318,6 @@
                 }});
             }
         }
-
         function shareToWhatsApp() {
             const list = db.lists[db.currentId];
             if (list.items.length === 0) return;
@@ -356,7 +326,6 @@
             text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`;
             window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank');
         }
-
         render();
     </script>
 </body>
