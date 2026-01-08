@@ -24,8 +24,13 @@
         }
         
         .bottom-bar { 
-            position: fixed; bottom: 0; left: 0; right: 0; 
-            background: #7367f0; z-index: 1000; padding: 15px 15px 30px 15px; 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: #7367f0; 
+            z-index: 1000; 
+            padding: 15px 15px 30px 15px; 
             border-radius: 35px 35px 0 0; 
             box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15);
         }
@@ -40,15 +45,22 @@
             background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(2px); 
         }
 
-        @keyframes pulse-red {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-        .mic-active { animation: pulse-red 1.5s infinite; color: #ef4444 !important; }
-        
         .lock-btn-edit { background-color: #ff9f43 !important; }
         .lock-btn-locked { background-color: #48a9f8 !important; }
+
+        /* עיצוב שם רשימה ניתן לעריכה */
+        .editable-title {
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            font-size: 1.25rem;
+            width: 100%;
+            outline: none;
+            color: #1e293b;
+        }
+        .editable-title:focus {
+            border-bottom: 2px solid #7367f0;
+        }
     </style>
 </head>
 <body>
@@ -75,25 +87,27 @@
     </div>
 
     <div class="max-w-md mx-auto p-4">
+        
+        <div class="flex items-center gap-2 mb-4 overflow-x-auto py-2 no-scrollbar">
+            <select id="listSelector" onchange="switchList(this.value)" class="bg-white border-none rounded-xl px-3 py-2 shadow-sm font-bold text-indigo-600 outline-none flex-grow">
+                </select>
+            <button onclick="createNewList()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-md font-bold flex-shrink-0">
+                + רשימה חדשה
+            </button>
+        </div>
+
         <div class="bg-white rounded-2xl p-4 mb-4 flex justify-between items-center shadow-sm">
-            <div>
-                <h1 class="text-xl font-bold text-slate-800">הרשימה שלי</h1>
+            <div class="flex-grow mr-2">
+                <input type="text" id="listNameInput" class="editable-title" value="הרשימה שלי" onblur="updateListName(this.value)">
                 <span id="statusTag" class="text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block">מצב עריכה</span>
             </div>
-            <button onclick="shareToWhatsApp()" class="p-2 text-indigo-500 bg-indigo-50 rounded-full">
+            <button onclick="shareToWhatsApp()" class="p-2 text-indigo-500 bg-indigo-50 rounded-full flex-shrink-0">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.319 1.592 5.548 0 10.058-4.51 10.06-10.059.002-2.689-1.047-5.215-2.951-7.119-1.906-1.906-4.432-2.956-7.123-2.957-5.549 0-10.059 4.511-10.061 10.06-.001 2.105.56 4.111 1.621 5.895l-.997 3.638 3.732-.98zm11.367-7.404c-.3-.15-1.771-.874-2.046-.974-.275-.1-.475-.15-.675.15-.2.3-.775.974-.95 1.174-.175.2-.35.225-.65.075-.3-.15-1.265-.467-2.41-1.487-.892-.795-1.493-1.777-1.668-2.077-.175-.3-.018-.462.13-.611.134-.134.3-.35.45-.525.15-.175.2-.3.3-.5s.05-.375-.025-.525c-.075-.15-.675-1.625-.925-2.225-.244-.589-.493-.51-.675-.52l-.575-.01c-.2 0-.525.075-.8.375s-1.05 1.025-1.05 2.5 1.075 2.9 1.225 3.1c.15.2 2.115 3.23 5.125 4.53.716.31 1.274.495 1.71.635.72.23 1.375.197 1.893.12.577-.087 1.771-.725 2.021-1.425.25-.7.25-1.3.175-1.425-.075-.125-.275-.2-.575-.35z"/></svg>
             </button>
         </div>
 
         <div id="inputForm" class="hidden bg-white p-5 rounded-3xl shadow-lg mb-4 border-2 border-indigo-400">
-            <div class="relative mb-3">
-                <input type="text" id="itemName" placeholder="שם המוצר" class="w-full p-3 pl-12 border rounded-xl outline-none">
-                <button id="voiceBtn" onclick="startVoiceRecognition()" class="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-indigo-400">
-                    <svg id="micIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                    </svg>
-                </button>
-            </div>
+            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full p-3 border rounded-xl mb-3 outline-none">
             <input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר" class="w-full p-3 border rounded-xl mb-3 outline-none">
             <div class="flex gap-2">
                 <button onclick="addItem()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold">הוסף</button>
@@ -125,16 +139,59 @@
     </div>
 
     <script>
-        let shoppingList = JSON.parse(localStorage.getItem('LIST_V6')) || [];
+        // מבנה נתונים חדש התומך ברשימות מרובות
+        let listsData = JSON.parse(localStorage.getItem('LISTS_APP_V1')) || {
+            currentListId: 'list_1',
+            lists: {
+                'list_1': { name: 'הרשימה שלי', items: [] }
+            }
+        };
+
+        let currentListId = listsData.currentListId;
         let isLocked = false;
         let currentEditIndex = null;
         let sortableInstance = null;
-        let recognition = null; // אובייקט גלובלי כדי לשלוט בסגירה
+
+        function updateSelector() {
+            const selector = document.getElementById('listSelector');
+            selector.innerHTML = '';
+            for (const id in listsData.lists) {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.innerText = listsData.lists[id].name;
+                opt.selected = (id === currentListId);
+                selector.appendChild(opt);
+            }
+        }
+
+        function createNewList() {
+            const newId = 'list_' + Date.now();
+            listsData.lists[newId] = { name: 'רשימה חדשה', items: [] };
+            switchList(newId);
+        }
+
+        function switchList(id) {
+            currentListId = id;
+            listsData.currentListId = id;
+            document.getElementById('listNameInput').value = listsData.lists[id].name;
+            save();
+            render();
+            updateSelector();
+        }
+
+        function updateListName(newName) {
+            if (!newName.trim()) newName = "רשימה ללא שם";
+            listsData.lists[currentListId].name = newName;
+            save();
+            updateSelector();
+        }
 
         function render() {
             const container = document.getElementById('itemsList');
             container.innerHTML = '';
-            shoppingList.forEach((item, index) => {
+            const items = listsData.lists[currentListId].items;
+            
+            items.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = "item-card";
                 div.dataset.id = item.id;
@@ -166,72 +223,25 @@
             initSort();
         }
 
-        function startVoiceRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("לא נתמך"); return; }
-            
-            // אם כבר יש זיהוי פעיל, נעצור אותו קודם
-            if (recognition) { recognition.abort(); }
-
-            recognition = new SpeechRecognition();
-            recognition.lang = 'he-IL';
-            recognition.continuous = false;
-            recognition.interimResults = false;
-
-            const micIcon = document.getElementById('micIcon');
-            const inputField = document.getElementById('itemName');
-            
-            inputField.value = ""; // מנקה את השדה פיזית ברגע הלחיצה
-
-            recognition.onstart = () => {
-                micIcon.classList.add('mic-active');
-            };
-
-            recognition.onresult = (event) => {
-                // לוקח רק את התוצאה האחרונה בלבד
-                const transcript = event.results[0][0].transcript;
-                inputField.value = transcript; 
-                recognition.stop();
-            };
-
-            recognition.onend = () => {
-                micIcon.classList.remove('mic-active');
-                recognition = null; // משמיד את האובייקט בסוף
-            };
-
-            recognition.start();
+        function openPriceModal(index) { 
+            currentEditIndex = index; 
+            const input = document.getElementById('newPriceInput');
+            input.value = listsData.lists[currentListId].items[index].unitPrice; 
+            document.getElementById('priceModal').style.display = 'flex';
+            setTimeout(() => {
+                input.focus();
+                input.select(); 
+            }, 150);
         }
 
-        function toggleInputForm() { 
-            const form = document.getElementById('inputForm');
-            const nameInput = document.getElementById('itemName');
-            const priceInput = document.getElementById('itemPrice');
-            
-            form.classList.toggle('hidden');
-            
-            // כשסוגרים או פותחים, מוודאים שהשדות ריקים לחלוטין
-            nameInput.value = "";
-            priceInput.value = "";
-            
-            // עוצרים זיהוי קולי אם הוא פועל במקרה
-            if (recognition) { recognition.abort(); }
+        function closePriceModal() { document.getElementById('priceModal').style.display='none'; }
+        
+        function confirmPriceUpdate() { 
+            listsData.lists[currentListId].items[currentEditIndex].unitPrice = parseFloat(document.getElementById('newPriceInput').value) || 0; 
+            closePriceModal(); 
+            save(); 
         }
 
-        function addItem() {
-            const name = document.getElementById('itemName').value.trim();
-            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
-            if(!name) return;
-            
-            shoppingList.push({ id: Date.now().toString(), name, unitPrice: price, qty: 1, checked: false });
-            
-            // ניקוי מוחלט וסגירה
-            document.getElementById('itemName').value = '';
-            document.getElementById('itemPrice').value = '';
-            toggleInputForm();
-            save();
-        }
-
-        // --- שאר הפונקציות ללא שינוי לוגי אך עם וידוא תקינות ---
         function initSort() {
             const el = document.getElementById('itemsList');
             if (sortableInstance) sortableInstance.destroy();
@@ -239,14 +249,73 @@
                 sortableInstance = Sortable.create(el, {
                     handle: '.drag-handle', animation: 150,
                     onEnd: (evt) => {
-                        const movedItem = shoppingList.splice(evt.oldIndex, 1)[0];
-                        shoppingList.splice(evt.newIndex, 0, movedItem);
+                        const items = listsData.lists[currentListId].items;
+                        const movedItem = items.splice(evt.oldIndex, 1)[0];
+                        items.splice(evt.newIndex, 0, movedItem);
                         save();
                     }
                 });
             }
         }
 
+        function toggleInputForm() { 
+            const form = document.getElementById('inputForm');
+            form.classList.toggle('hidden');
+            if(!form.classList.contains('hidden')) document.getElementById('itemName').focus();
+        }
+
+        function addItem() {
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            if(!name) return;
+            listsData.lists[currentListId].items.push({ id: Date.now().toString(), name, unitPrice: price, qty: 1, checked: false });
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            toggleInputForm();
+            save();
+        }
+
+        function openDeleteModal() { if(listsData.lists[currentListId].items.length > 0) document.getElementById('deleteModal').style.display='flex'; }
+        function closeDeleteModal() { document.getElementById('deleteModal').style.display='none'; }
+        
+        function confirmClearAll() { 
+            listsData.lists[currentListId].items = []; 
+            closeDeleteModal(); 
+            save(); 
+        }
+
+        function calculate() {
+            const items = listsData.lists[currentListId].items;
+            const total = items.reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
+            const paid = items.filter(i => i.checked).reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
+            document.getElementById('totalSum').innerText = total.toFixed(2);
+            document.getElementById('paidSum').innerText = paid.toFixed(2);
+        }
+
+        function toggleCheck(index) { 
+            const item = listsData.lists[currentListId].items[index];
+            item.checked = !item.checked; 
+            save(); 
+        }
+
+        function updateQty(index, val) { 
+            const item = listsData.lists[currentListId].items[index];
+            if(item.qty + val >= 1) { 
+                item.qty += val; 
+                save(); 
+            } 
+        }
+
+        function removeItem(index) { 
+            listsData.lists[currentListId].items.splice(index, 1); 
+            save(); 
+        }
+
+        function save() { 
+            localStorage.setItem('LISTS_APP_V1', JSON.stringify(listsData)); 
+            render(); 
+        }
+        
         function toggleLock() {
             isLocked = !isLocked;
             const btn = document.getElementById('lockBtn');
@@ -254,53 +323,31 @@
             const tag = document.getElementById('statusTag');
             if (isLocked) {
                 btn.className = "w-12 h-12 lock-btn-locked rounded-full flex items-center justify-center shadow-lg transition";
-                tag.innerText = "נעול"; tag.className = "text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block";
+                tag.innerText = "נעול";
+                tag.className = "text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block";
                 path.setAttribute('d', "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z");
             } else {
                 btn.className = "w-12 h-12 lock-btn-edit rounded-full flex items-center justify-center shadow-lg transition";
-                tag.innerText = "מצב עריכה"; tag.className = "text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block";
+                tag.innerText = "מצב עריכה";
+                tag.className = "text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block";
                 path.setAttribute('d', "M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z");
             }
             render();
         }
 
-        function openPriceModal(index) { 
-            currentEditIndex = index; 
-            const input = document.getElementById('newPriceInput');
-            input.value = shoppingList[index].unitPrice; 
-            document.getElementById('priceModal').style.display = 'flex';
-            setTimeout(() => { input.focus(); input.select(); }, 150);
-        }
-
-        function closePriceModal() { document.getElementById('priceModal').style.display='none'; }
-        function confirmPriceUpdate() { 
-            shoppingList[currentEditIndex].unitPrice = parseFloat(document.getElementById('newPriceInput').value) || 0; 
-            closePriceModal(); save(); 
-        }
-        function openDeleteModal() { if(shoppingList.length > 0) document.getElementById('deleteModal').style.display='flex'; }
-        function closeDeleteModal() { document.getElementById('deleteModal').style.display='none'; }
-        function confirmClearAll() { shoppingList = []; closeDeleteModal(); save(); }
-        function calculate() {
-            const total = shoppingList.reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
-            const paid = shoppingList.filter(i => i.checked).reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
-            document.getElementById('totalSum').innerText = total.toFixed(2);
-            document.getElementById('paidSum').innerText = paid.toFixed(2);
-        }
-        function toggleCheck(index) { shoppingList[index].checked = !shoppingList[index].checked; save(); }
-        function updateQty(index, val) { if(shoppingList[index].qty + val >= 1) { shoppingList[index].qty += val; save(); } }
-        function removeItem(index) { shoppingList.splice(index, 1); save(); }
-        function save() { localStorage.setItem('LIST_V6', JSON.stringify(shoppingList)); render(); }
         function shareToWhatsApp() {
-            if (shoppingList.length === 0) return;
-            let text = "🛒 *רשימת הקניות שלי:*\n\n";
-            shoppingList.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.unitPrice * i.qty).toFixed(2)}\n`);
+            const list = listsData.lists[currentListId];
+            if (list.items.length === 0) return;
+            let text = `🛒 *${list.name}:*\n\n`;
+            list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.unitPrice * i.qty).toFixed(2)}\n`);
             text += `\n💰 *סה"כ: ₪${document.getElementById('totalSum').innerText}*`;
             window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank');
         }
 
+        // אתחול ראשוני
+        document.getElementById('listNameInput').value = listsData.lists[currentListId].name;
+        updateSelector();
         render();
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     </script>
 </body>
 </html>
-
