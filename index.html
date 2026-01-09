@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartBudget Final V17</title>
+    <title>SmartBudget Final Pro V18</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -27,7 +27,11 @@
 
     <div class="app-header">
         <div class="flex items-center">
-            <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="onSignIn"></div>
+            <div id="g_id_onload" 
+                 data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" 
+                 data-callback="onSignIn"
+                 data-auto_prompt="true">
+            </div>
             <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
             <span id="syncStatus" class="status-tag">מחובר ✅</span>
         </div>
@@ -47,7 +51,7 @@
             </div>
 
             <div class="bg-white rounded-[30px] p-6 mb-4 shadow-sm border border-gray-50">
-                <div class="flex justify-between items-start gap-4">
+                <div class="flex items-start gap-4">
                     <div class="flex-1 min-w-0 text-right">
                         <div id="listNameDisplay" class="text-3xl font-black text-slate-800 break-words leading-tight" onclick="openModal('editListNameModal')"></div>
                         <div id="statusTag" class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold mt-2">מצב עריכה</div>
@@ -89,11 +93,23 @@
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם רשימה</h2><input type="text" id="editListNameInput"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('BUDGET_PRO_V17')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
-        let isLocked = false, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
+        let db = JSON.parse(localStorage.getItem('BUDGET_PRO_V18')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
 
-        function save() { localStorage.setItem('BUDGET_PRO_V17', JSON.stringify(db)); render(); }
-        function onSignIn(r) { document.getElementById('syncStatus').style.display = 'inline-block'; }
+        function save() { localStorage.setItem('BUDGET_PRO_V18', JSON.stringify(db)); render(); }
+        
+        function onSignIn(r) { 
+            localStorage.setItem('G_CONNECTED', 'true');
+            document.getElementById('syncStatus').style.display = 'inline-block'; 
+        }
+
+        // בדיקה אוטומטית בעת רענון הדף
+        window.onload = function() {
+            if (localStorage.getItem('G_CONNECTED') === 'true') {
+                document.getElementById('syncStatus').style.display = 'inline-block';
+            }
+            render();
+        };
 
         function showPage(page) {
             activePage = page;
@@ -163,7 +179,6 @@
         function toggleSelectAll(checked) { db.selectedInSummary = checked ? Object.keys(db.lists) : []; save(); }
         function prepareNewListModal() { document.getElementById('newListNameInput').value = ''; openModal('newListModal'); }
         function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
-        
         function toggleLock() {
             isLocked = !isLocked;
             const btn = document.getElementById('lockBtn');
@@ -172,20 +187,7 @@
             document.getElementById('statusTag').innerText = isLocked ? "נעול" : "מצב עריכה";
             initSortable();
         }
-
-        function initSortable() {
-            const el = document.getElementById('itemsContainer');
-            if (sortableInstance) sortableInstance.destroy();
-            if (!isLocked && activePage === 'lists') {
-                sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
-                    const items = db.lists[db.currentId].items;
-                    const item = items.splice(e.oldIndex, 1)[0];
-                    items.splice(e.newIndex, 0, item);
-                    save();
-                }});
-            }
-        }
-
+        function initSortable() { const el = document.getElementById('itemsContainer'); if (sortableInstance) sortableInstance.destroy(); if (!isLocked && activePage === 'lists') { sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => { const items = db.lists[db.currentId].items; const item = items.splice(e.oldIndex, 1)[0]; items.splice(e.newIndex, 0, item); save(); }}); } }
         function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='inputForm'||id==='newListModal') setTimeout(()=>document.getElementById(id==='inputForm'?'itemName':'newListNameInput').focus(),100); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function executeClear() { db.lists[db.currentId].items = []; closeModal('confirmModal'); save(); }
@@ -200,8 +202,6 @@
         function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); document.getElementById('itemName').value=''; document.getElementById('itemPrice').value=''; closeModal('inputForm'); save(); } }
         function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
         function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank'); }
-
-        window.onload = render;
     </script>
 </body>
 </html>
