@@ -150,18 +150,34 @@
                 document.getElementById('pageLists').style.display = 'none';
                 document.getElementById('pageSummary').style.display = 'block';
                 Object.keys(db.lists).forEach(id => {
-                    const l = db.lists[id]; let lt = 0;
-                    l.items.forEach(i => lt += (i.price * i.qty));
+                    const l = db.lists[id];
+                    let listTotal = 0, listPaid = 0;
+                    l.items.forEach(i => {
+                        const itemSub = i.price * i.qty;
+                        listTotal += itemSub;
+                        if (i.checked) listPaid += itemSub;
+                    });
+                    
                     const isSel = db.selectedInSummary.includes(id);
-                    if (isSel) total += lt;
+                    if (isSel) {
+                        total += listTotal;
+                        paid += listPaid;
+                    }
+
                     const div = document.createElement('div');
-                    div.className = "item-card flex flex-row items-center justify-between";
+                    div.className = "item-card flex flex-col gap-2";
                     div.innerHTML = `
-                        <div class="flex items-center gap-4 flex-1">
-                            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
-                            <span class="font-bold text-slate-700 flex-1 text-right text-xl cursor-pointer" onclick="db.currentId = '${id}'; showPage('lists');">${l.name}</span>
+                        <div class="flex flex-row items-center justify-between">
+                            <div class="flex items-center gap-4 flex-1">
+                                <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
+                                <span class="font-bold text-slate-700 flex-1 text-right text-xl cursor-pointer" onclick="db.currentId = '${id}'; showPage('lists');">${l.name}</span>
+                            </div>
+                            <div class="text-indigo-600 font-black text-xl ml-4">₪${listTotal.toFixed(2)}</div>
                         </div>
-                        <div class="text-indigo-600 font-black text-xl ml-4">₪${lt.toFixed(2)}</div>`;
+                        <div class="flex justify-between items-center px-2 pt-2 border-t border-gray-50">
+                            <span class="text-[10px] text-gray-400 font-bold">שולם ברשימה:</span>
+                            <span class="text-sm font-bold text-green-500">₪${listPaid.toFixed(2)}</span>
+                        </div>`;
                     container.appendChild(div);
                 });
                 const allSel = Object.keys(db.lists).length > 0 && Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
