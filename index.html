@@ -22,6 +22,7 @@
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
         .trash-btn { width: 38px; height: 38px; background: white; border-radius: 50%; border: 1.5px solid #fee2e2; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .sortable-ghost { opacity: 0.4; }
     </style>
 </head>
 <body>
@@ -77,9 +78,15 @@
             <div><div class="text-[10px] opacity-70">שולם ברשימה</div><div class="text-xl font-bold">₪<span id="displayPaid">0.00</span></div></div>
         </div>
         <div class="flex items-center justify-around">
-            <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl">🗑️</button>
-            <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-3xl font-bold">+</button>
-            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl">🔓</button>
+            <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+            <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+            </button>
+            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </button>
         </div>
     </div>
 
@@ -134,34 +141,24 @@
                     total += subTotal; if (item.checked) paid += subTotal;
                     const div = document.createElement('div');
                     div.className = "item-card";
-                    div.setAttribute("data-id", idx);
-
+                    div.setAttribute('data-id', idx);
                     div.innerHTML = `
                         <div class="flex flex-row items-center justify-between mb-4">
                             <div class="flex items-center gap-3 flex-1">
-                                <input type="checkbox" ${item.checked ? 'checked' : ''} 
-                                       onchange="toggleItem(${idx})"
-                                       class="w-7 h-7 mt-1 accent-indigo-600 flex-shrink-0">
-                                <div class="flex-1 min-w-0 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'} text-right">
-                                    ${item.name}
-                                </div>
+                                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 mt-1 accent-indigo-600 flex-shrink-0">
+                                <div class="flex-1 min-w-0 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'} text-right">${item.name}</div>
                             </div>
                             <button onclick="removeItem(${idx})" class="trash-btn ml-2 flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
-                        <div class="flex flex-row items-center justify-between">
+                        <div class="flex justify-between items-center">
+                            <span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600 cursor-pointer">₪${subTotal.toFixed(2)}</span>
                             <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1 border border-gray-100">
                                 <button onclick="changeQty(${idx}, -1)" class="text-red-500 font-black text-2xl px-1">-</button>
                                 <span class="font-black text-xl w-6 text-center">${item.qty}</span>
                                 <button onclick="changeQty(${idx}, 1)" class="text-green-500 font-black text-2xl px-1">+</button>
                             </div>
-                            <span onclick="openEditTotalModal(${idx})"
-                                  class="text-2xl font-black text-indigo-600 cursor-pointer">
-                                ₪${subTotal.toFixed(2)}
-                            </span>
                         </div>`;
                     container.appendChild(div);
                 });
@@ -173,13 +170,11 @@
                     const isSel = db.selectedInSummary.includes(id);
                     if (isSel) total += lt;
                     const div = document.createElement('div');
-                    div.className = "item-card flex flex-row items-center justify-between";
+                    div.className = "item-card flex flex-row items-center gap-3";
                     div.innerHTML = `
-                        <div class="flex items-center gap-3 flex-1">
-                            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
-                            <span class="font-bold text-slate-700 flex-1 text-right text-lg">${l.name}</span>
-                        </div>
-                        <div class="text-indigo-600 font-black text-xl ml-4">₪${lt.toFixed(2)}</div>`;
+                        <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
+                        <span class="font-bold text-slate-700 flex-1 text-right text-lg">${l.name}</span>
+                        <div class="text-indigo-600 font-black text-xl">₪${lt.toFixed(2)}</div>`;
                     container.appendChild(div);
                 });
                 const allSel = Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
@@ -192,9 +187,12 @@
         function toggleLock() {
             isLocked = !isLocked;
             const btn = document.getElementById('lockBtn');
-            btn.className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`;
-            btn.innerText = isLocked ? '🔒' : '🔓';
+            btn.className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`;
+            btn.innerHTML = isLocked 
+                ? '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>'
+                : '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>';
             document.getElementById('statusTag').innerText = isLocked ? "נעול" : "מצב עריכה";
+            document.getElementById('statusTag').className = `inline-block px-3 py-1 rounded-full text-[10px] font-bold mt-2 ${isLocked ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`;
             initSortable();
         }
 
@@ -202,12 +200,14 @@
             const el = document.getElementById('itemsContainer');
             if (sortableInstance) sortableInstance.destroy();
             if (!isLocked && activePage === 'lists') {
-                sortableInstance = Sortable.create(el, {
-                    animation: 150,
-                    onEnd: () => {
+                sortableInstance = Sortable.create(el, { 
+                    animation: 150, 
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function(evt) {
                         const items = db.lists[db.currentId].items;
-                        const order = sortableInstance.toArray();
-                        db.lists[db.currentId].items = order.map(i => items[parseInt(i, 10)]);
+                        const movedItem = items.splice(evt.oldIndex, 1)[0];
+                        items.splice(evt.newIndex, 0, movedItem);
+                        db.lists[db.currentId].items = items;
                         save();
                     }
                 });
@@ -222,7 +222,14 @@
         function prepareNewListModal() { document.getElementById('newListNameInput').value = ''; openModal('newListModal'); }
         function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
         function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
-        function showPage(p) { activePage = p; render(); }
+        function showPage(p) { 
+            activePage = p; 
+            document.getElementById('tabLists').className = p === 'lists' ? 'tab-btn tab-active shadow-sm' : 'tab-btn tab-inactive shadow-sm';
+            document.getElementById('tabSummary').className = p === 'summary' ? 'tab-btn tab-active shadow-sm' : 'tab-btn tab-inactive shadow-sm';
+            document.getElementById('pageLists').className = p === 'lists' ? '' : 'hidden';
+            document.getElementById('pageSummary').className = p === 'summary' ? '' : 'hidden';
+            render(); 
+        }
         function switchList(id) { db.currentId = id; render(); }
         function updateListSelector() { const s = document.getElementById('listSelector'); s.innerHTML = ''; Object.keys(db.lists).forEach(id => { const o = document.createElement('option'); o.value = id; o.innerText = db.lists[id].name; o.selected = (id === db.currentId); s.appendChild(o); }); }
         function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
