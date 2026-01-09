@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartBudget Final Fix</title>
+    <title>SmartBudget - Final Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -21,20 +21,20 @@
 </head>
 <body>
 
-    <div class="p-3 flex justify-between items-center sticky top-0 z-[2000] bg-transparent pointer-events-none">
-        <div class="pointer-events-auto">
+    <div class="p-3 flex justify-between items-center bg-white shadow-sm sticky top-0 z-[2000]">
+        <div>
             <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="onSignIn"></div>
             <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
         </div>
-        <h1 class="text-indigo-600 font-bold text-xl pointer-events-auto bg-white/80 px-2 rounded-lg">SmartBudget</h1>
+        <h1 class="text-indigo-600 font-bold text-xl">SmartBudget</h1>
     </div>
 
     <div id="confirmModal" class="modal-overlay">
         <div class="bg-white w-80 p-6 rounded-3xl text-center shadow-2xl">
-            <h2 class="text-lg font-bold mb-6 text-gray-800">למחוק את כל המוצרים?</h2>
+            <h2 class="text-lg font-bold mb-6">למחוק את כל הרשימה?</h2>
             <div class="flex gap-3">
                 <button onclick="executeClear()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-lg">מחק</button>
-                <button onclick="closeModal('confirmModal')" class="flex-1 py-3 bg-gray-100 font-bold rounded-xl text-lg text-gray-600">ביטול</button>
+                <button onclick="closeModal('confirmModal')" class="flex-1 py-3 bg-gray-100 font-bold rounded-xl text-lg">ביטול</button>
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
         </div>
 
         <div id="pageLists">
-            <div class="bg-white rounded-2xl p-3 mb-4 flex gap-2 items-center shadow-sm border border-gray-100">
+            <div class="bg-white rounded-2xl p-3 mb-4 flex gap-2 items-center shadow-sm">
                 <select id="listSelector" onchange="switchList(this.value)" class="flex-1 p-2 bg-gray-50 rounded-lg font-bold outline-none text-indigo-600"></select>
                 <button onclick="createNewList()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm">+ רשימה</button>
             </div>
@@ -57,7 +57,7 @@
                         <button onclick="shareToWhatsApp()" class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-green-500 border border-gray-100 shadow-sm">
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                         </button>
-                        <button onclick="openModal('confirmModal')" class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-red-500 border border-red-50 shadow-sm font-bold text-xl">🗑️</button>
+                        <button onclick="openModal('confirmModal')" class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-red-500 border border-gray-100 shadow-sm font-bold text-xl">🗑️</button>
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                         <textarea id="listNameDisplay" class="auto-expand-input text-2xl text-left" rows="1" onblur="updateListName(this.value)"></textarea>
@@ -65,7 +65,6 @@
                     </div>
                 </div>
             </div>
-
             <div id="itemsContainer"></div>
         </div>
 
@@ -94,16 +93,16 @@
             <input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר" class="w-full p-3 border rounded-xl mb-6 outline-none text-right">
             <div class="flex gap-2">
                 <button onclick="addItem()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold">הוסף</button>
-                <button onclick="toggleInputForm()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold text-gray-600">ביטול</button>
+                <button onclick="toggleInputForm()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">ביטול</button>
             </div>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('BUDGET_APP_V5')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let db = JSON.parse(localStorage.getItem('BUDGET_APP_FINAL_V6')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let isLocked = false, activePage = 'lists', sortableInstance = null;
 
-        function save() { localStorage.setItem('BUDGET_APP_V5', JSON.stringify(db)); render(); }
+        function save() { localStorage.setItem('BUDGET_APP_FINAL_V6', JSON.stringify(db)); render(); }
         function onSignIn(r) { console.log("Google Connected ✅"); }
 
         function showPage(page) {
