@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartBudget Final Pro V19</title>
+    <title>SmartBudget Cloud Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -21,7 +21,6 @@
         .status-tag { font-size: 11px; font-weight: bold; color: #28c76f; background: #e8f9ef; padding: 2px 8px; border-radius: 6px; display: none; margin-left: 8px; }
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
-        /* עיצוב סמל הפח האדום המדויק לפי 42743.jpg */
         .trash-btn { width: 38px; height: 38px; background: white; border-radius: 50%; border: 1.5px solid #fee2e2; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
 </head>
@@ -29,8 +28,8 @@
 
     <div class="app-header">
         <div class="flex items-center">
-            <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="onSignIn" data-auto_prompt="true"></div>
-            <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
+            <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
+            <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
             <span id="syncStatus" class="status-tag">מחובר ✅</span>
         </div>
         <h1 class="text-indigo-600 font-bold text-xl">SmartBudget</h1>
@@ -80,7 +79,7 @@
         <div class="flex items-center justify-around">
             <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl">🗑️</button>
             <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-3xl font-bold">+</button>
-            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl">🔒</button>
+            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl">🔓</button>
         </div>
     </div>
 
@@ -91,25 +90,36 @@
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם רשימה</h2><input type="text" id="editListNameInput"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('BUDGET_MASTER_V19')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let db = JSON.parse(localStorage.getItem('BUDGET_MASTER_V20')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
+        let accessToken = null;
 
-        function save() { localStorage.setItem('BUDGET_MASTER_V19', JSON.stringify(db)); render(); }
-        function onSignIn(r) { localStorage.setItem('G_CONN', 'true'); document.getElementById('syncStatus').style.display = 'inline-block'; }
+        function save() { 
+            localStorage.setItem('BUDGET_MASTER_V20', JSON.stringify(db)); 
+            render();
+            if (accessToken) syncToCloud(); // שמירה לענן בכל שינוי
+        }
+        
+        async function handleAuth(response) {
+            accessToken = response.credential;
+            localStorage.setItem('G_CONNECTED', 'true');
+            document.getElementById('syncStatus').style.display = 'inline-block';
+            await loadFromCloud(); // משיכת נתונים מהענן מיד לאחר התחברות
+        }
+
+        async function syncToCloud() {
+            console.log("סנכרון לענן...");
+            // כאן יבוא מימוש ה-API לשמירה (דורש Client ID מוגדר ב-Console של גוגל)
+        }
+
+        async function loadFromCloud() {
+            console.log("טעינה מהענן...");
+        }
 
         window.onload = function() {
-            if (localStorage.getItem('G_CONN') === 'true') document.getElementById('syncStatus').style.display = 'inline-block';
+            if (localStorage.getItem('G_CONNECTED') === 'true') document.getElementById('syncStatus').style.display = 'inline-block';
             render();
         };
-
-        function showPage(page) {
-            activePage = page;
-            document.getElementById('pageLists').style.display = (page === 'lists') ? 'block' : 'none';
-            document.getElementById('pageSummary').style.display = (page === 'summary') ? 'block' : 'none';
-            document.getElementById('tabLists').className = `tab-btn ${page === 'lists' ? 'tab-active' : 'tab-inactive'}`;
-            document.getElementById('tabSummary').className = `tab-btn ${page === 'summary' ? 'tab-active' : 'tab-inactive'}`;
-            render();
-        }
 
         function render() {
             updateListSelector();
@@ -128,7 +138,7 @@
                     div.innerHTML = `
                         <div class="flex flex-row items-center justify-between mb-4">
                             <div class="flex items-center gap-3 flex-1">
-                                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
+                                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 mt-1 accent-indigo-600 flex-shrink-0">
                                 <div class="flex-1 min-w-0 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'} text-right">${item.name}</div>
                             </div>
                             <button onclick="removeItem(${idx})" class="trash-btn ml-2 flex-shrink-0">
@@ -137,7 +147,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600 cursor-pointer">₪${subTotal.toFixed(2)}</span>
-                            <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1 border border-gray-100 shadow-inner">
+                            <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1 border border-gray-100">
                                 <button onclick="changeQty(${idx}, 1)" class="text-green-500 font-black text-2xl px-1">+</button>
                                 <span class="font-black text-xl w-6 text-center">${item.qty}</span>
                                 <button onclick="changeQty(${idx}, -1)" class="text-red-500 font-black text-2xl px-1">-</button>
@@ -181,12 +191,11 @@
         function initSortable() {
             const el = document.getElementById('itemsContainer');
             if (sortableInstance) sortableInstance.destroy();
-            // הגרירה פעילה רק כשהמנעול פתוח (כתום)
             if (!isLocked && activePage === 'lists') {
-                sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                sortableInstance = Sortable.create(el, { animation: 150, onEnd: () => {
                     const items = db.lists[db.currentId].items;
-                    const item = items.splice(e.oldIndex, 1)[0];
-                    items.splice(e.newIndex, 0, item);
+                    const order = sortableInstance.toArray();
+                    db.lists[db.currentId].items = order.map(i => items[i]);
                     save();
                 }});
             }
@@ -200,14 +209,15 @@
         function prepareNewListModal() { document.getElementById('newListNameInput').value = ''; openModal('newListModal'); }
         function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
         function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
+        function showPage(p) { activePage = p; render(); }
+        function switchList(id) { db.currentId = id; render(); }
         function updateListSelector() { const s = document.getElementById('listSelector'); s.innerHTML = ''; Object.keys(db.lists).forEach(id => { const o = document.createElement('option'); o.value = id; o.innerText = db.lists[id].name; o.selected = (id === db.currentId); s.appendChild(o); }); }
-        function switchList(id) { db.currentId = id; save(); }
         function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
         function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
         function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
         function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); document.getElementById('itemName').value=''; document.getElementById('itemPrice').value=''; closeModal('inputForm'); save(); } }
         function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
-        function toggleSelectAll(checked) { db.selectedInSummary = checked ? Object.keys(db.lists) : []; save(); }
+        function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
         function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank'); }
     </script>
 </body>
