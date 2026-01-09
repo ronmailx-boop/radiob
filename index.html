@@ -3,158 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBudget - SL6</title>
+    <title>SmartBudget - ניהול מלא</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #27ae60;
-            --bg: #f4f7f6;
-            --text: #333;
-        }
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background-color: var(--bg); 
-            margin: 0; 
-            padding: 15px; 
-            color: var(--text);
-        }
-        .header { 
-            background: var(--primary); 
-            color: white; 
-            padding: 15px; 
-            border-radius: 12px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f7f6; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; }
         
-        /* פתרון המלבנים הדינמיים - הטקסט לא נחתך */
-        .card { 
-            background: white; 
-            padding: 15px; 
-            margin-bottom: 12px; 
-            border-radius: 10px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-wrap: wrap; /* מאפשר לטקסט ארוך לרדת שורה */
-            min-height: 60px;
-            border-right: 5px solid var(--accent);
-        }
-        .item-info { 
-            flex: 1; 
-            font-weight: 600; 
-            word-wrap: break-word; 
-            font-size: 1.1em;
-            padding-left: 10px;
-        }
-        .item-price { 
-            font-size: 1.2em; 
-            color: #e74c3c; 
-            font-weight: bold; 
-            white-space: nowrap;
-        }
+        /* כותרת קבועה */
+        .header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         
-        .add-section { 
-            background: white; 
-            padding: 15px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        /* עיצוב מלבנים דינמיים - פתרון לחיתוך טקסט */
+        .item-card { 
+            background: white; margin: 10px; padding: 15px; border-radius: 12px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-wrap: wrap; min-height: 60px;
         }
-        input { 
-            padding: 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            font-size: 16px; /* מונע זום אוטומטי באייפון/אנדרואיד */
-        }
-        .btn-add { 
-            background: var(--accent); 
-            color: white; 
-            border: none; 
-            padding: 12px; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer;
-        }
-        #status { font-size: 0.8em; opacity: 0.8; }
+        .item-name { flex: 1; font-weight: bold; color: var(--primary); word-wrap: break-word; font-size: 1.1em; padding-left: 10px; }
+        .item-val { font-size: 1.2em; color: #e74c3c; font-weight: bold; }
+
+        /* תפריט תחתון (עמודים) */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid #ddd; }
+        .nav-btn { background: none; border: none; font-weight: bold; color: var(--primary); cursor: pointer; }
+        .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+        .page { display: none; padding: 15px; }
+        .page.active { display: block; }
+
+        .input-group { background: white; padding: 15px; border-radius: 12px; margin: 10px; display: flex; flex-direction: column; gap: 10px; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        .main-btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div>
-        <h2 style="margin:0;">SmartBudget</h2>
-        <div id="status">ממתין לחיבור ענן...</div>
-    </div>
-    <div id="g_id_onload"
-         data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse">
-    </div>
-    <div class="g_id_signin" data-type="standard" data-size="small"></div>
+    <h2 style="margin:0;">SmartBudget</h2>
+    <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="onSignIn"></div>
+    <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
 </div>
 
-<div class="add-section">
-    <input type="text" id="nameInp" placeholder="שם ההוצאה (למשל: הפניקס)">
-    <input type="number" id="priceInp" placeholder="סכום">
-    <button class="btn-add" onclick="addNewItem()">הוסף לרשימה</button>
+<div id="page1" class="page active">
+    <h3>🛒 רשימת קניות</h3>
+    <div class="input-group">
+        <input type="text" id="shopItem" placeholder="שם מוצר">
+        <input type="number" id="shopPrice" placeholder="מחיר משוער">
+        <button class="main-btn" onclick="addShop()">הוסף לסל</button>
+    </div>
+    <div id="shopList"></div>
 </div>
 
-<div id="itemsContainer"></div>
+<div id="page2" class="page">
+    <h3>📊 ריכוז תקציבים שנתי</h3>
+    <div id="budgetList">
+        <div class="item-card">
+            <div class="item-name">הפניקס ביטוח מקיף - תשלום שנתי לרכב</div>
+            <div class="item-val">₪4,500</div>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <button class="nav-btn active" onclick="showPage(1, this)">קניות</button>
+    <button class="nav-btn" onclick="showPage(2, this)">ריכוז תקציב</button>
+</div>
 
 <script>
-    let budgetItems = [];
-    const CLIENT_ID = '151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com';
-
-    // טיפול בהתחברות מגוגל
-    function handleCredentialResponse(response) {
-        console.log("התחברת בהצלחה");
-        document.getElementById('status').innerText = "מחובר לענן ✅";
-        // כאן תתווסף בעתיד הלוגיקה של Google Drive API
+    function showPage(num, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('page' + num).classList.add('active');
+        btn.classList.add('active');
     }
 
-    function addNewItem() {
-        const name = document.getElementById('nameInp').value;
-        const price = document.getElementById('priceInp').value;
-        
-        if (name && price) {
-            budgetItems.push({ name, price });
-            document.getElementById('nameInp').value = '';
-            document.getElementById('priceInp').value = '';
-            updateUI();
-            saveLocally();
+    function onSignIn(resp) { console.log("מחובר!"); }
+
+    function addShop() {
+        const name = document.getElementById('shopItem').value;
+        const price = document.getElementById('shopPrice').value;
+        if(name && price) {
+            const container = document.getElementById('shopList');
+            container.innerHTML += `
+                <div class="item-card">
+                    <div class="item-name">${name}</div>
+                    <div class="item-val">₪${price}</div>
+                </div>`;
+            document.getElementById('shopItem').value = '';
+            document.getElementById('shopPrice').value = '';
         }
     }
-
-    function updateUI() {
-        const container = document.getElementById('itemsContainer');
-        container.innerHTML = budgetItems.map(item => `
-            <div class="card">
-                <div class="item-info">${item.name}</div>
-                <div class="item-price">₪${item.price}</div>
-            </div>
-        `).join('');
-    }
-
-    function saveLocally() {
-        localStorage.setItem('smart_budget_data', JSON.stringify(budgetItems));
-    }
-
-    // טעינת נתונים קיימים בפתיחת האפליקציה
-    window.onload = () => {
-        const data = localStorage.getItem('smart_budget_data');
-        if (data) {
-            budgetItems = JSON.parse(data);
-            updateUI();
-        }
-    };
 </script>
 
 </body>
