@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartBudget Pro V16</title>
+    <title>SmartBudget Final V17</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -11,7 +11,6 @@
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 180px; min-height: 100vh; overflow-x: hidden; }
         .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: fit-content; }
-        /* הנמכת הפאנל הסגול בשליש */
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
         .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; }
         .tab-active { background: #7367f0; color: white; }
@@ -44,11 +43,11 @@
         <div id="pageLists">
             <div class="bg-white rounded-2xl p-3 mb-4 flex gap-3 items-center shadow-sm border border-gray-100">
                 <select id="listSelector" onchange="switchList(this.value)" class="flex-1 p-2 bg-gray-50 rounded-lg font-bold outline-none text-indigo-600 min-w-0 text-right"></select>
-                <button onclick="prepareNewListModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold shadow-sm">+ רשימה</button>
+                <button onclick="prepareNewListModal()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-bold shadow-sm">+ רשימה</button>
             </div>
 
             <div class="bg-white rounded-[30px] p-6 mb-4 shadow-sm border border-gray-50">
-                <div class="flex items-start gap-4">
+                <div class="flex justify-between items-start gap-4">
                     <div class="flex-1 min-w-0 text-right">
                         <div id="listNameDisplay" class="text-3xl font-black text-slate-800 break-words leading-tight" onclick="openModal('editListNameModal')"></div>
                         <div id="statusTag" class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold mt-2">מצב עריכה</div>
@@ -62,11 +61,9 @@
         </div>
 
         <div id="pageSummary" class="hidden">
-            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100 flex flex-row justify-between items-center">
-                <div class="flex items-center gap-3 w-full justify-start">
-                    <input type="checkbox" id="selectAllLists" onchange="toggleSelectAll(this.checked)" class="w-7 h-7 accent-indigo-600">
-                    <span class="font-bold text-slate-700">בחר את כל הרשימות</span>
-                </div>
+            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100 flex flex-row items-center gap-3">
+                <input type="checkbox" id="selectAllLists" onchange="toggleSelectAll(this.checked)" class="w-7 h-7 accent-indigo-600">
+                <span class="font-bold text-slate-700">בחר את כל הרשימות</span>
             </div>
             <div id="summaryContainer"></div>
         </div>
@@ -79,25 +76,23 @@
             <div><div class="text-[10px] opacity-70">שולם ברשימה</div><div class="text-xl font-bold">₪<span id="displayPaid">0.00</span></div></div>
         </div>
         <div class="flex items-center justify-around">
-            <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
+            <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl">🗑️</button>
             <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-3xl font-bold">+</button>
             <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl">🔓</button>
         </div>
     </div>
 
-    <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-2xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
+    <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-2xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 text-gray-500 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
     <div id="inputForm" class="modal-overlay"><div class="edit-modal"><h2>הוספת מוצר</h2><input type="text" id="itemName" placeholder="שם המוצר"><input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר"><div class="flex gap-3"><button class="bg-green-500 text-white flex-1 py-4 rounded-2xl font-bold" onclick="addItem()">הוסף</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('inputForm')">ביטול</button></div></div></div>
     <div id="editTotalModal" class="modal-overlay"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveTotal()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editTotalModal')">ביטול</button></div></div></div>
     <div id="newListModal" class="modal-overlay"><div class="edit-modal"><h2>רשימה חדשה</h2><input type="text" id="newListNameInput" placeholder="שם הרשימה"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveNewList()">צור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('newListModal')">ביטול</button></div></div></div>
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם רשימה</h2><input type="text" id="editListNameInput"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('BUDGET_V16')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
-        let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
+        let db = JSON.parse(localStorage.getItem('BUDGET_PRO_V17')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let isLocked = false, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
 
-        function save() { localStorage.setItem('BUDGET_V16', JSON.stringify(db)); render(); }
+        function save() { localStorage.setItem('BUDGET_PRO_V17', JSON.stringify(db)); render(); }
         function onSignIn(r) { document.getElementById('syncStatus').style.display = 'inline-block'; }
 
         function showPage(page) {
@@ -123,7 +118,22 @@
                     total += subTotal; if (item.checked) paid += subTotal;
                     const div = document.createElement('div');
                     div.className = "item-card";
-                    div.innerHTML = `<div class="flex flex-row-reverse justify-between items-start mb-4"><div class="flex items-start gap-3 flex-1 min-w-0 text-right"><input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 mt-1 accent-indigo-600 flex-shrink-0"><div class="flex-1 min-w-0 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'} text-right">${item.name}</div></div><button onclick="removeItem(${idx})" class="text-red-500 font-bold p-1 text-xl">🗑️</button></div><div class="flex justify-between items-center"><div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1"><button onclick="changeQty(${idx}, 1)" class="text-green-500 font-black text-2xl">+</button><span class="font-black text-xl w-6 text-center">${item.qty}</span><button onclick="changeQty(${idx}, -1)" class="text-red-500 font-black text-2xl">-</button></div><span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600 cursor-pointer">₪${subTotal.toFixed(2)}</span></div>`;
+                    div.innerHTML = `
+                        <div class="flex flex-row items-start justify-between mb-4">
+                            <div class="flex items-start gap-3 flex-1">
+                                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 mt-1 accent-indigo-600 flex-shrink-0">
+                                <div class="flex-1 min-w-0 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'} text-right">${item.name}</div>
+                            </div>
+                            <button onclick="removeItem(${idx})" class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-red-500 border border-gray-100 shadow-sm ml-2 flex-shrink-0">🗑️</button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600 cursor-pointer">₪${subTotal.toFixed(2)}</span>
+                            <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1">
+                                <button onclick="changeQty(${idx}, 1)" class="text-green-500 font-black text-2xl">+</button>
+                                <span class="font-black text-xl w-6 text-center">${item.qty}</span>
+                                <button onclick="changeQty(${idx}, -1)" class="text-red-500 font-black text-2xl">-</button>
+                            </div>
+                        </div>`;
                     container.appendChild(div);
                 });
                 initSortable();
@@ -133,8 +143,14 @@
                     l.items.forEach(i => lt += (i.price * i.qty));
                     const isSel = db.selectedInSummary.includes(id);
                     if (isSel) total += lt;
-                    const div = document.createElement('div'); div.className = "item-card flex flex-row-reverse justify-between items-center";
-                    div.innerHTML = `<div class="flex items-center gap-3 flex-1 justify-start"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-6 h-6 accent-indigo-600 flex-shrink-0"><span class="font-bold text-slate-700 flex-1 text-right">${l.name}</span></div><div class="text-indigo-600 font-bold ml-4">₪${lt.toFixed(2)}</div>`;
+                    const div = document.createElement('div');
+                    div.className = "item-card flex flex-row items-center justify-between";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3 flex-1">
+                            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
+                            <span class="font-bold text-slate-700 flex-1 text-right text-lg">${l.name}</span>
+                        </div>
+                        <div class="text-indigo-600 font-black text-xl ml-4">₪${lt.toFixed(2)}</div>`;
                     container.appendChild(div);
                 });
                 const allSel = Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
@@ -147,15 +163,29 @@
         function toggleSelectAll(checked) { db.selectedInSummary = checked ? Object.keys(db.lists) : []; save(); }
         function prepareNewListModal() { document.getElementById('newListNameInput').value = ''; openModal('newListModal'); }
         function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
+        
         function toggleLock() {
             isLocked = !isLocked;
             const btn = document.getElementById('lockBtn');
-            btn.className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl transition-all ${isLocked ? 'bg-orange-400' : 'bg-blue-600'}`;
-            btn.innerText = isLocked ? '🔓' : '🔒';
+            btn.className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-xl transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`;
+            btn.innerText = isLocked ? '🔒' : '🔓';
             document.getElementById('statusTag').innerText = isLocked ? "נעול" : "מצב עריכה";
             initSortable();
         }
-        function initSortable() { const el = document.getElementById('itemsContainer'); if (sortableInstance) sortableInstance.destroy(); if (!isLocked) sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => { const items = db.lists[db.currentId].items; const item = items.splice(e.oldIndex, 1)[0]; items.splice(e.newIndex, 0, item); save(); }}); }
+
+        function initSortable() {
+            const el = document.getElementById('itemsContainer');
+            if (sortableInstance) sortableInstance.destroy();
+            if (!isLocked && activePage === 'lists') {
+                sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                    const items = db.lists[db.currentId].items;
+                    const item = items.splice(e.oldIndex, 1)[0];
+                    items.splice(e.newIndex, 0, item);
+                    save();
+                }});
+            }
+        }
+
         function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='inputForm'||id==='newListModal') setTimeout(()=>document.getElementById(id==='inputForm'?'itemName':'newListNameInput').focus(),100); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function executeClear() { db.lists[db.currentId].items = []; closeModal('confirmModal'); save(); }
