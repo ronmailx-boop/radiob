@@ -6,45 +6,44 @@
     <title>SmartBudget Pro</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root { --primary: #2c3e50; --purple: #6c5ce7; --bg: #f4f7f6; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 200px; }
-        
+        :root { --primary: #2c3e50; --purple: #6c5ce7; --bg: #f8f9fa; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 180px; }
         .header { background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         
-        /* כרטיסי מוצרים דינמיים - לא נחתכים */
-        .card { 
-            background: white; margin: 12px; padding: 20px; border-radius: 18px; 
+        /* מלבנים לבנים שגדלים לגובה - פתרון לחיתוך טקסט */
+        .item-card { 
+            background: white; margin: 12px; padding: 20px; border-radius: 20px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; 
-            align-items: center; flex-wrap: wrap; min-height: 80px;
+            align-items: center; flex-wrap: wrap; min-height: 60px;
         }
-        .item-name { flex: 1; font-weight: bold; color: var(--primary); font-size: 1.2em; word-wrap: break-word; padding-left: 10px; }
-        .item-price { font-size: 1.3em; color: var(--purple); font-weight: bold; }
+        .item-name { flex: 1; font-weight: bold; color: var(--primary); font-size: 1.1em; word-wrap: break-word; padding-left: 10px; line-height: 1.3; }
+        .item-price { font-size: 1.2em; color: var(--purple); font-weight: bold; }
 
-        /* הפאנל הסגול הקלאסי */
+        /* הפאנל הסגול המקורי - מעוצב מחדש שלא יסתיר את המסך */
         .footer-panel { 
             position: fixed; bottom: 0; width: 100%; background: var(--purple); 
-            padding: 20px 0; border-radius: 35px 35px 0 0; z-index: 2000;
-            display: flex; flex-direction: column; align-items: center; box-shadow: 0 -10px 25px rgba(0,0,0,0.2);
+            padding: 15px 0 10px 0; border-radius: 35px 35px 0 0; z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; box-shadow: 0 -8px 25px rgba(0,0,0,0.2);
         }
-        .summary-row { display: flex; width: 90%; justify-content: space-around; color: white; margin-bottom: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
-        .summary-item div:first-child { font-size: 0.8em; opacity: 0.8; }
-        .summary-item div:last-child { font-size: 1.4em; font-weight: bold; }
+        .summary-row { display: flex; width: 85%; justify-content: space-around; color: white; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
+        .sum-box div:first-child { font-size: 0.75em; opacity: 0.9; }
+        .sum-box div:last-child { font-size: 1.2em; font-weight: bold; }
 
-        .btn-group { display: flex; gap: 30px; align-items: center; margin-bottom: 15px; }
-        .circle-btn { background: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 26px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .add-btn { width: 85px; height: 85px; background: var(--green); color: white; font-size: 45px; }
+        .btn-group { display: flex; gap: 35px; align-items: center; margin-bottom: 10px; }
+        .circle-btn { background: white; border: none; width: 55px; height: 55px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .add-btn { width: 75px; height: 75px; background: var(--green); color: white; font-size: 40px; }
         .lock-btn { background: var(--orange); color: white; }
-        .delete-btn { background: var(--red); color: white; }
+        .del-btn { background: var(--red); color: white; }
         
-        .nav-tabs { display: flex; gap: 60px; color: white; font-weight: bold; font-size: 1.2em; }
-        .nav-tab { opacity: 0.5; cursor: pointer; padding: 5px 10px; }
+        .nav-tabs { display: flex; gap: 50px; color: white; font-weight: bold; }
+        .nav-tab { opacity: 0.6; cursor: pointer; padding-bottom: 5px; font-size: 1.1em; }
         .nav-tab.active { opacity: 1; border-bottom: 3px solid white; }
 
-        /* חלון הוספה (Modal) */
+        /* חלון הוספה */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; }
-        .modal-box { background: white; width: 85%; padding: 30px; border-radius: 25px; display: flex; flex-direction: column; gap: 15px; }
-        input { padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 18px; outline: none; }
-        .btn-save { background: var(--green); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: bold; font-size: 1.2em; }
+        .modal-box { background: white; width: 80%; padding: 25px; border-radius: 25px; display: flex; flex-direction: column; gap: 12px; }
+        input { padding: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; }
+        .btn-save { background: var(--green); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -52,30 +51,30 @@
 <div class="header">
     <h3 style="margin:0;">SmartBudget</h3>
     <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="onSignIn"></div>
-    <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
+    <div class="g_id_signin" data-type="icon"></div>
 </div>
 
-<div id="main">
+<div id="view">
     <div id="budgetView">
-        <h2 style="text-align:center; padding: 20px 0;">📊 ריכוז תקציבים</h2>
+        <h2 style="text-align:center; padding: 15px 0; margin:0;">📊 ריכוז תקציב</h2>
         <div id="budgetList">
-            <div class="card">
+            <div class="item-card">
                 <div class="item-name">הפניקס ביטוח מקיף - תשלום שנתי לרכב</div>
                 <div class="item-price">₪4,500</div>
             </div>
         </div>
     </div>
     <div id="shopView" style="display:none;">
-        <h2 style="text-align:center; padding: 20px 0;">🛒 רשימת קניות</h2>
+        <h2 style="text-align:center; padding: 15px 0; margin:0;">🛒 רשימת קניות</h2>
         <div id="shopList"></div>
     </div>
 </div>
 
 <div id="modal" class="modal">
     <div class="modal-box">
-        <h3 style="margin:0; text-align:center;">הוספת פריט חדש</h3>
-        <input type="text" id="name" placeholder="שם המוצר/ההוצאה">
-        <input type="number" id="price" placeholder="סכום">
+        <h3 style="margin:0; text-align:center;">הוספת פריט</h3>
+        <input type="text" id="n" placeholder="שם">
+        <input type="number" id="p" placeholder="סכום">
         <button class="btn-save" onclick="save()">הוסף</button>
         <button style="background:none; border:none; color:grey;" onclick="closeM()">ביטול</button>
     </div>
@@ -83,17 +82,17 @@
 
 <div class="footer-panel">
     <div class="summary-row">
-        <div class="summary-item"><div>סה"כ רשימה</div><div id="totalSum">₪4,500.00</div></div>
-        <div class="summary-item"><div>שולם ברשימה</div><div>₪0.00</div></div>
+        <div class="sum-box"><div>סה"כ רשימה</div><div id="total">₪4,500</div></div>
+        <div class="sum-box"><div>שולם</div><div>₪0.00</div></div>
     </div>
     <div class="btn-group">
-        <button class="circle-btn delete-btn">🗑️</button>
+        <button class="circle-btn lock-btn" onclick="alert('ננעל')">🔓</button>
         <button class="circle-btn add-btn" onclick="openM()">+</button>
-        <button class="circle-btn lock-btn">🔓</button>
+        <button class="circle-btn del-btn" onclick="alert('מחיקה')">🗑️</button>
     </div>
     <div class="nav-tabs">
-        <span class="nav-tab" id="t-shop" onclick="tab('shop')">קניות</span>
-        <span class="nav-tab active" id="t-budget" onclick="tab('budget')">ריכוז תקציב</span>
+        <span class="nav-tab active" id="b-tab" onclick="tab('budget')">ריכוז תקציב</span>
+        <span class="nav-tab" id="s-tab" onclick="tab('shop')">קניות</span>
     </div>
 </div>
 
@@ -103,21 +102,20 @@
         mode = t;
         document.getElementById('budgetView').style.display = t === 'budget' ? 'block' : 'none';
         document.getElementById('shopView').style.display = t === 'shop' ? 'block' : 'none';
-        document.getElementById('t-budget').classList.toggle('active', t === 'budget');
-        document.getElementById('t-shop').classList.toggle('active', t === 'shop');
+        document.getElementById('b-tab').classList.toggle('active', t === 'budget');
+        document.getElementById('s-tab').classList.toggle('active', t === 'shop');
     }
     function openM() { document.getElementById('modal').style.display = 'flex'; }
     function closeM() { document.getElementById('modal').style.display = 'none'; }
     function save() {
-        const n = document.getElementById('name').value, p = document.getElementById('price').value;
-        if(n && p) {
+        const name = document.getElementById('n').value, price = document.getElementById('p').value;
+        if(name && price) {
             const list = mode === 'budget' ? 'budgetList' : 'shopList';
-            document.getElementById(list).innerHTML += `<div class="card"><div class="item-name">${n}</div><div class="item-price">₪${p}</div></div>`;
-            closeM();
-            document.getElementById('name').value = ''; document.getElementById('price').value = '';
+            document.getElementById(list).innerHTML += `<div class="item-card"><div class="item-name">${name}</div><div class="item-price">₪${price}</div></div>`;
+            closeM(); document.getElementById('n').value = ''; document.getElementById('p').value = '';
         }
     }
-    function onSignIn(r) { console.log("Cloud Ready"); }
+    function onSignIn(r) { console.log("Cloud Connected"); }
 </script>
 
 </body>
