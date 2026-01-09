@@ -3,113 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartBudget Pro - סנכרון ענן</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>SmartBudget Pro</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
     <style>
-        * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 220px; }
+        :root { --p: #2c3e50; --v: #7367f0; --bg: #f8f9fc; --g: #2ecc71; --r: #e74c3c; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 200px; }
         
-        /* תיקון המלבנים - גדלים לגובה עם הטקסט */
-        .item-card { 
-            background: white; border-radius: 20px; padding: 15px; margin: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; justify-content: space-between;
-            align-items: center; flex-wrap: wrap; min-height: 70px;
-        }
+        .header { background: var(--p); color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
 
-        /* הפאנל הסגול הקלאסי */
-        .bottom-bar { 
-            position: fixed; bottom: 0; left: 0; right: 0; 
-            background: #7367f0; z-index: 1000; padding: 15px 15px 30px 15px; 
-            border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.2);
+        /* עיצוב כרטיס המוצר המדויק לפי התמונה */
+        .product-card { 
+            background: white; margin: 12px; padding: 15px; border-radius: 25px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 10px;
         }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+        
+        .item-name { font-weight: bold; font-size: 1.2em; color: #333; flex: 1; word-wrap: break-word; line-height: 1.2; }
+        .trash-btn { color: var(--r); background: #fff5f5; border: none; border-radius: 8px; padding: 5px; cursor: pointer; }
+        
+        .price-tag { font-size: 1.2em; color: var(--v); font-weight: bold; }
+        .qty-controls { display: flex; align-items: center; gap: 12px; background: #f8f9fa; padding: 5px 15px; border-radius: 15px; border: 1px solid #eee; }
+        .qty-btn { border: none; background: none; font-size: 1.5em; font-weight: bold; cursor: pointer; color: var(--g); }
+        .qty-val { font-weight: bold; font-size: 1.1em; width: 20px; text-align: center; }
 
-        .circle-btn { 
-            width: 55px; height: 55px; border-radius: 50%; display: flex; 
-            align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        /* הפאנל הסגול התחתון */
+        .footer { 
+            position: fixed; bottom: 0; width: 100%; background: var(--v); 
+            padding: 15px 0; border-radius: 35px 35px 0 0; z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; box-shadow: 0 -8px 25px rgba(0,0,0,0.2);
         }
+        .stats-row { display: flex; width: 85%; justify-content: space-around; color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px; }
+        .stat-item { text-align: center; }
+        .stat-label { font-size: 0.75em; opacity: 0.9; }
+        .stat-val { font-size: 1.3em; font-weight: bold; }
 
-        /* הסתרת מודאלים שקפצו החוצה */
-        .modal-overlay { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); 
-            z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); 
-        }
+        .btn-group { display: flex; gap: 35px; align-items: center; margin-bottom: 10px; }
+        .c-btn { background: white; border: none; width: 55px; height: 55px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .add-btn { width: 75px; height: 75px; background: var(--g); color: white; font-size: 40px; }
+
+        .tabs { display: flex; gap: 50px; color: white; font-weight: bold; font-size: 1em; }
+        .tab-active { border-bottom: 3px solid white; }
     </style>
 </head>
 <body>
 
-    <div class="bg-slate-800 text-white p-4 flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-xl font-bold">SmartBudget</h1>
-        <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleSignIn"></div>
-        <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
-    </div>
+<div class="header">
+    <h3 style="margin:0;">SmartBudget</h3>
+    <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="onSignIn"></div>
+    <div class="g_id_signin" data-type="icon"></div>
+</div>
 
-    <div id="main-content" class="p-2">
-        <div id="itemsList">
-            <div class="item-card">
-                <div class="font-bold text-lg flex-1 pl-4 break-words">הפניקס ביטוח מקיף - תשלום שנתי לרכב</div>
-                <div class="text-xl font-bold text-indigo-600 text-left">₪4,500</div>
+<div id="items-list">
+    <div class="product-card">
+        <div class="card-top">
+            <button class="trash-btn">🗑️</button>
+            <div class="item-name">הפניקס ביטוח מקיף - תשלום שנתי לרכב</div>
+            <input type="checkbox" style="transform: scale(1.5);">
+        </div>
+        <div class="card-bottom">
+            <div class="drag-handle" style="color:#ddd;">⠿</div>
+            <div class="price-tag">₪4,500.00</div>
+            <div class="qty-controls">
+                <button class="qty-btn" style="color:var(--r);">-</button>
+                <span class="qty-val">1</span>
+                <button class="qty-btn">+</button>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="bottom-bar">
-        <div class="flex justify-around text-white mb-6 text-center">
-            <div><div class="text-xs opacity-80">סה"כ רשימה</div><div class="text-2xl font-bold">₪0.00</div></div>
-            <div class="w-px bg-white/30 h-10"></div>
-            <div><div class="text-xs opacity-80">שולם</div><div class="text-2xl font-bold">₪0.00</div></div>
-        </div>
-
-        <div class="flex items-center justify-around">
-            <button onclick="toggleLock()" class="circle-btn bg-orange-400 text-white text-2xl">🔓</button>
-            <button onclick="openAddModal()" class="circle-btn bg-green-500 text-white text-4xl mb-4 w-20 h-20 border-4 border-white/20">+</button>
-            <button onclick="clearAll()" class="circle-btn bg-red-500 text-white text-2xl">🗑️</button>
-        </div>
-        
-        <div class="flex justify-center gap-10 text-white font-bold mt-2">
-            <span class="opacity-100 border-b-2">ריכוז תקציב</span>
-            <span class="opacity-50">קניות</span>
-        </div>
+<div class="footer">
+    <div class="stats-row">
+        <div class="stat-item"><div class="stat-label">סה"כ רשימה</div><div class="stat-val">₪4,500.00</div></div>
+        <div class="stat-item"><div class="stat-label">שולם ברשימה</div><div class="stat-val">₪0.00</div></div>
     </div>
-
-    <div id="addModal" class="modal-overlay">
-        <div class="bg-white w-5/6 p-6 rounded-3xl shadow-2xl">
-            <h2 class="text-xl font-bold mb-4 text-center">הוספת פריט</h2>
-            <input type="text" id="itemName" placeholder="שם הפריט" class="w-full p-4 border rounded-2xl mb-4 outline-none">
-            <input type="number" id="itemPrice" placeholder="מחיר" class="w-full p-4 border rounded-2xl mb-6 outline-none">
-            <div class="flex gap-4">
-                <button onclick="saveItem()" class="flex-1 bg-green-500 text-white py-4 rounded-2xl font-bold">שמור</button>
-                <button onclick="closeModal()" class="flex-1 bg-gray-100 py-4 rounded-2xl font-bold">ביטול</button>
-            </div>
-        </div>
+    <div class="btn-group">
+        <button class="c-btn" style="background:#e74c3c; color:white;">🗑️</button>
+        <button class="c-btn add-btn">+</button>
+        <button class="c-btn" style="background:#f39c12; color:white;">🔓</button>
     </div>
+    <div class="tabs">
+        <span class="tab-active">ריכוז תקציב</span>
+        <span style="opacity:0.6;">קניות</span>
+    </div>
+</div>
 
-    <script>
-        function handleSignIn(response) {
-            console.log("מחובר לענן ✅");
-            alert("התחברת בהצלחה! סנכרון הענן פעיל.");
-        }
+<script>
+    function onSignIn(r) { console.log("Cloud Connected ✅"); }
+</script>
 
-        function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
-        
-        function saveItem() {
-            const name = document.getElementById('itemName').value;
-            const price = document.getElementById('itemPrice').value;
-            if(name && price) {
-                const container = document.getElementById('itemsList');
-                container.innerHTML += `
-                    <div class="item-card">
-                        <div class="font-bold text-lg flex-1 pl-4 break-words">${name}</div>
-                        <div class="text-xl font-bold text-indigo-600">₪${price}</div>
-                    </div>`;
-                closeModal();
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemPrice').value = '';
-            }
-        }
-    </script>
 </body>
 </html>
