@@ -23,8 +23,7 @@
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
         .trash-btn { width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2); border: none; cursor: pointer; }
         .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
-        /* עיצוב כפתור מחיקת רשימה שלמה */
-        .list-delete-btn { color: #ffb4b4; transition: 0.2s; padding: 5px; }
+        .list-delete-btn { color: #ffb4b4; transition: 0.2s; padding: 5px; cursor: pointer; }
         .list-delete-btn:hover { color: #ef4444; }
     </style>
 </head>
@@ -93,6 +92,8 @@
     </div>
 
     <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-2xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 text-gray-500 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
+    <div id="deleteListModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק את הרשימה?</h2><p class="text-sm text-gray-500 mb-6">הפעולה תמחק את הרשימה וכל תוכנה לצמיתות</p><div class="flex gap-3"><button id="confirmDeleteListBtn" class="bg-red-500 text-white flex-1 py-4 rounded-2xl font-bold">מחק</button><button class="bg-gray-100 text-gray-500 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('deleteListModal')">ביטול</button></div></div></div>
+    
     <div id="inputForm" class="modal-overlay"><div class="edit-modal"><h2>הוספת מוצר</h2><input type="text" id="itemName" placeholder="שם המוצר"><input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר"><div class="flex gap-3"><button class="bg-green-500 text-white flex-1 py-4 rounded-2xl font-bold" onclick="addItem()">הוסף</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('inputForm')">ביטול</button></div></div></div>
     <div id="editTotalModal" class="modal-overlay"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveTotal()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editTotalModal')">ביטול</button></div></div></div>
     <div id="newListModal" class="modal-overlay"><div class="edit-modal"><h2>רשימה חדשה</h2><input type="text" id="newListNameInput" placeholder="שם הרשימה"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveNewList()">צור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('newListModal')">ביטול</button></div></div></div>
@@ -100,7 +101,7 @@
 
     <script>
         let db = JSON.parse(localStorage.getItem('BUDGET_FINAL_V27')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
-        let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
+        let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null, listToDelete = null;
 
         function save() { localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); render(); }
         function onSignIn(r) { localStorage.setItem('G_CONN', 'true'); document.getElementById('syncStatus').style.display = 'inline-block'; }
@@ -113,19 +114,26 @@
 
         function showPage(p) { activePage = p; render(); }
 
-        function deleteWholeList(id) {
+        function prepareDeleteList(id) {
             if (Object.keys(db.lists).length <= 1) {
                 alert("חייבת להישאר לפחות רשימה אחת במערכת.");
                 return;
             }
-            if (confirm("האם למחוק את כל הרשימה הזו לצמיתות?")) {
-                delete db.lists[id];
-                const index = db.selectedInSummary.indexOf(id);
-                if (index > -1) db.selectedInSummary.splice(index, 1);
-                if (db.currentId === id) db.currentId = Object.keys(db.lists)[0];
-                save();
-            }
+            listToDelete = id;
+            openModal('deleteListModal');
         }
+
+        document.getElementById('confirmDeleteListBtn').onclick = function() {
+            if (listToDelete) {
+                delete db.lists[listToDelete];
+                const index = db.selectedInSummary.indexOf(listToDelete);
+                if (index > -1) db.selectedInSummary.splice(index, 1);
+                if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0];
+                save();
+                closeModal('deleteListModal');
+                listToDelete = null;
+            }
+        };
 
         function render() {
             const list = db.lists[db.currentId];
@@ -191,7 +199,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="text-indigo-600 font-black text-xl ml-2">₪${listTotal.toFixed(2)}</div>
-                                <button onclick="deleteWholeList('${id}')" class="list-delete-btn">
+                                <button onclick="prepareDeleteList('${id}')" class="list-delete-btn">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>
