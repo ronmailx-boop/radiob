@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartBudget Pro V27</title>
+    <title>SmartBudget Final Pro V28</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 180px; min-height: 100vh; overflow-x: hidden; }
         .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: fit-content; }
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
         .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
@@ -42,7 +42,7 @@
         </div>
 
         <div id="pageLists">
-            <div class="flex gap-2 mb-4 justify-between items-center bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex mb-4 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
                 <button onclick="prepareNewListModal()" class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold text-sm shadow-sm flex-1">+ רשימה חדשה</button>
             </div>
 
@@ -95,15 +95,15 @@
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם רשימה</h2><input type="text" id="editListNameInput"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('BUDGET_FINAL_V27')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let db = JSON.parse(localStorage.getItem('BUDGET_MASTER_V28')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
 
-        function save() { localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); render(); }
-        function onSignIn(r) { localStorage.setItem('G_CONN', 'true'); document.getElementById('syncStatus').style.display = 'inline-block'; }
+        function save() { localStorage.setItem('BUDGET_MASTER_V28', JSON.stringify(db)); render(); }
+        function onSignIn(r) { localStorage.setItem('G_CONNECTED', 'true'); document.getElementById('syncStatus').style.display = 'inline-block'; }
         function handleAuth(r) { onSignIn(r); }
 
         window.onload = function() {
-            if (localStorage.getItem('G_CONN') === 'true') document.getElementById('syncStatus').style.display = 'inline-block';
+            if (localStorage.getItem('G_CONNECTED') === 'true') document.getElementById('syncStatus').style.display = 'inline-block';
             render();
         };
 
@@ -205,6 +205,7 @@
         function prepareNewListModal() { document.getElementById('newListNameInput').value = ''; openModal('newListModal'); }
         function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
         function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
+        function switchList(id) { db.currentId = id; render(); }
         function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
         function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
         function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
