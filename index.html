@@ -22,7 +22,6 @@
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
         .trash-btn { width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2); border: none; cursor: pointer; }
-        /* עיצוב המפריד הגרפי לקטגוריה */
         .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
     </style>
 </head>
@@ -156,12 +155,11 @@
                     const isSel = db.selectedInSummary.includes(id);
                     if (isSel) total += lt;
                     const div = document.createElement('div');
-                    div.className = "item-card flex flex-row items-center justify-between cursor-pointer active:bg-gray-50 transition-colors";
-                    div.onclick = () => { db.currentId = id; showPage('lists'); };
+                    div.className = "item-card flex flex-row items-center justify-between";
                     div.innerHTML = `
                         <div class="flex items-center gap-4 flex-1">
-                            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="event.stopPropagation(); toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
-                            <span class="font-bold text-slate-700 flex-1 text-right text-xl">${l.name}</span>
+                            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
+                            <span class="font-bold text-slate-700 flex-1 text-right text-xl cursor-pointer" onclick="db.currentId = '${id}'; showPage('lists');">${l.name}</span>
                         </div>
                         <div class="text-indigo-600 font-black text-xl ml-4">₪${lt.toFixed(2)}</div>`;
                     container.appendChild(div);
