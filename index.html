@@ -37,6 +37,16 @@
         .dark-mode .bg-white { background-color: #0f3460 !important; }
         .dark-mode .text-slate-700 { color: #e0e0e0 !important; }
         .dark-mode .text-slate-800 { color: #ffffff !important; }
+
+        /* Print Specific Styles */
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .bottom-bar, .app-header, .tab-btn, .modal-overlay, #pageLists, .list-delete-btn, .trash-btn, input[type="checkbox"], button { display: none !important; }
+            #pageSummary { display: block !important; padding: 0; }
+            .item-card { box-shadow: none; border: 1px solid #eee; break-inside: avoid; }
+            .print-only { display: block !important; }
+        }
+        .print-only { display: none; }
     </style>
 </head>
 <body>
@@ -83,11 +93,21 @@
         </div>
 
         <div id="pageSummary" class="hidden">
-            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100 flex items-center gap-3">
-                <input type="checkbox" id="selectAllLists" onchange="toggleSelectAll(this.checked)" class="w-7 h-7 accent-indigo-600">
-                <span class="font-bold text-slate-700 text-lg">בחר את כל הרשימות</span>
+            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="selectAllLists" onchange="toggleSelectAll(this.checked)" class="w-7 h-7 accent-indigo-600">
+                    <span class="font-bold text-slate-700 text-lg">בחר את כל הרשימות</span>
+                </div>
+                <button onclick="window.print()" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                </button>
             </div>
             <div id="summaryContainer"></div>
+            
+            <div class="print-only mt-8 border-t-2 border-indigo-600 pt-4 text-center">
+                <div class="text-xl font-bold">סיכום כולל לרשימות שנבחרו: ₪<span id="printTotal">0.00</span></div>
+                <div class="text-sm text-gray-500 mt-2">הופק באמצעות Vplus</div>
+            </div>
         </div>
     </div>
 
@@ -128,13 +148,7 @@
 
         window.onload = function() {
             if (localStorage.getItem('G_CONN') === 'true') document.getElementById('syncStatus').style.display = 'inline-block';
-            
-            // Load theme preference
-            if (localStorage.getItem('THEME') === 'dark') {
-                document.body.classList.add('dark-mode');
-                updateThemeIcon(true);
-            }
-            
+            if (localStorage.getItem('THEME') === 'dark') { document.body.classList.add('dark-mode'); updateThemeIcon(true); }
             render();
         };
 
@@ -146,24 +160,16 @@
 
         function updateThemeIcon(isDark) {
             const path = document.getElementById('themeIconPath');
-            if (isDark) {
-                // Sun Icon
-                path.setAttribute('d', 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z');
-            } else {
-                // Moon Icon
-                path.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
-            }
+            path.setAttribute('d', isDark ? 
+                'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z' : 
+                'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
         }
 
         function showPage(p) { activePage = p; render(); }
 
         function prepareDeleteList(id) {
-            if (Object.keys(db.lists).length <= 1) {
-                alert("חייבת להישאר לפחות רשימה אחת במערכת.");
-                return;
-            }
-            listToDelete = id;
-            openModal('deleteListModal');
+            if (Object.keys(db.lists).length <= 1) { alert("חייבת להישאר לפחות רשימה אחת."); return; }
+            listToDelete = id; openModal('deleteListModal');
         }
 
         document.getElementById('confirmDeleteListBtn').onclick = function() {
@@ -172,9 +178,7 @@
                 const index = db.selectedInSummary.indexOf(listToDelete);
                 if (index > -1) db.selectedInSummary.splice(index, 1);
                 if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0];
-                save();
-                closeModal('deleteListModal');
-                listToDelete = null;
+                save(); closeModal('deleteListModal'); listToDelete = null;
             }
         };
 
@@ -219,21 +223,16 @@
                 Object.keys(db.lists).forEach(id => {
                     const l = db.lists[id];
                     let listTotal = 0, listPaid = 0;
-                    l.items.forEach(i => {
-                        const itemSub = i.price * i.qty;
-                        listTotal += itemSub;
-                        if (i.checked) listPaid += itemSub;
-                    });
+                    l.items.forEach(i => { const sub = i.price * i.qty; listTotal += sub; if (i.checked) listPaid += sub; });
                     
                     const isSel = db.selectedInSummary.includes(id);
-                    if (isSel) {
-                        total += listTotal;
-                        paid += listPaid;
-                    }
+                    if (isSel) { total += listTotal; paid += listPaid; }
 
                     const div = document.createElement('div');
                     div.className = "item-card flex flex-col gap-2";
                     div.dataset.id = id;
+                    let itemsHtml = isSel ? `<div class="print-only text-xs text-gray-600 mt-2 border-t pt-2">` + l.items.map(i => `<div>${i.name} x${i.qty} - ₪${(i.price*i.qty).toFixed(2)}</div>`).join('') + `</div>` : '';
+                    
                     div.innerHTML = `
                         <div class="flex flex-row items-center justify-between">
                             <div class="flex items-center gap-4 flex-1">
@@ -247,14 +246,17 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center px-2 pt-2 border-t border-gray-50">
+                        <div class="flex justify-between items-center px-2 pt-2 border-t border-gray-50 no-print">
                             <span class="text-[10px] text-gray-400 font-bold">שולם ברשימה:</span>
                             <span class="text-sm font-bold text-green-500">₪${listPaid.toFixed(2)}</span>
-                        </div>`;
+                        </div>
+                        ${itemsHtml}`;
+                    if (!isSel) div.classList.add('no-print');
                     container.appendChild(div);
                 });
                 const allSel = Object.keys(db.lists).length > 0 && Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
                 const sa = document.getElementById('selectAllLists'); if(sa) sa.checked = allSel;
+                document.getElementById('printTotal').innerText = total.toFixed(2);
             }
             initSortable();
             document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
@@ -265,39 +267,27 @@
 
         function toggleLock() {
             isLocked = !isLocked;
-            const btn = document.getElementById('lockBtn');
-            const path = document.getElementById('lockIconPath');
+            const btn = document.getElementById('lockBtn'), path = document.getElementById('lockIconPath');
             btn.className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`;
             path.setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z');
             document.getElementById('statusTag').innerText = isLocked ? "נעול" : "מצב עריכה";
-            document.getElementById('statusTag').className = `text-[10px] font-bold mt-1 opacity-80`;
             initSortable();
         }
 
         function initSortable() {
             if (sortableInstance) sortableInstance.destroy();
             if (sortableSummaryInstance) sortableSummaryInstance.destroy();
-
             if (!isLocked) {
                 if (activePage === 'lists') {
-                    const el = document.getElementById('itemsContainer');
-                    sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                    sortableInstance = Sortable.create(document.getElementById('itemsContainer'), { animation: 150, onEnd: (e) => {
                         const items = db.lists[db.currentId].items;
-                        const moved = items.splice(e.oldIndex, 1)[0];
-                        items.splice(e.newIndex, 0, moved);
-                        save();
+                        items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]); save();
                     }});
                 } else {
-                    const el = document.getElementById('summaryContainer');
-                    sortableSummaryInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                    sortableSummaryInstance = Sortable.create(document.getElementById('summaryContainer'), { animation: 150, onEnd: (e) => {
                         const newOrder = {};
-                        const children = Array.from(el.children);
-                        children.forEach(child => {
-                            const id = child.dataset.id;
-                            newOrder[id] = db.lists[id];
-                        });
-                        db.lists = newOrder;
-                        save();
+                        Array.from(document.getElementById('summaryContainer').children).forEach(child => { const id = child.dataset.id; newOrder[id] = db.lists[id]; });
+                        db.lists = newOrder; save();
                     }});
                 }
             }
@@ -314,19 +304,12 @@
         function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
         function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
         function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
-        function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); document.getElementById('itemName').value=''; document.getElementById('itemPrice').value=''; } }
+        function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); } }
         function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
         function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
         function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank'); }
 
-        // PWA - Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker Registered!', reg))
-                    .catch(err => console.log('Service Worker registration failed: ', err));
-            });
-        }
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
     </script>
 </body>
 </html>
