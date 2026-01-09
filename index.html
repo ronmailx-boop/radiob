@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartBudget Pro SVG Edition</title>
+    <title>SmartBudget Final Pro V26</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 180px; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; overflow-x: hidden; }
         .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: fit-content; }
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; }
-        .tab-active { background: #7367f0; color: white; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
+        .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
         .tab-inactive { background: white; color: #666; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
@@ -37,14 +37,14 @@
 
     <div class="max-w-md mx-auto p-4">
         <div class="flex gap-3 mb-6">
-            <div id="tabLists" onclick="showPage('lists')" class="tab-btn tab-active shadow-sm">הרשימות שלי</div>
-            <div id="tabSummary" onclick="showPage('summary')" class="tab-btn tab-inactive shadow-sm">סיכום תקציב</div>
+            <div id="tabLists" onclick="showPage('lists')" class="tab-btn tab-active shadow-sm text-lg">הרשימות שלי</div>
+            <div id="tabSummary" onclick="showPage('summary')" class="tab-btn tab-inactive shadow-sm text-lg">סיכום תקציב</div>
         </div>
 
         <div id="pageLists">
-            <div class="bg-white rounded-2xl p-3 mb-4 flex gap-3 items-center shadow-sm border border-gray-100">
-                <select id="listSelector" onchange="switchList(this.value)" class="flex-1 p-2 bg-gray-50 rounded-lg font-bold outline-none text-indigo-600 min-w-0 text-right"></select>
-                <button onclick="prepareNewListModal()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-bold shadow-sm whitespace-nowrap">+ רשימה</button>
+            <div class="flex gap-2 mb-4 justify-between items-center bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
+                <button onclick="prepareNewListModal()" class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold text-sm shadow-sm flex-1">+ רשימה חדשה</button>
+                <div class="text-indigo-600 font-bold px-4 text-sm opacity-50">עבור בין רשימות בסיכום</div>
             </div>
 
             <div class="bg-white rounded-[30px] p-6 mb-4 shadow-sm border border-gray-50">
@@ -96,10 +96,10 @@
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם רשימה</h2><input type="text" id="editListNameInput"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('BUDGET_PRO_V25')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let db = JSON.parse(localStorage.getItem('BUDGET_PRO_V26')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null;
 
-        function save() { localStorage.setItem('BUDGET_PRO_V25', JSON.stringify(db)); render(); }
+        function save() { localStorage.setItem('BUDGET_PRO_V26', JSON.stringify(db)); render(); }
         function onSignIn(r) { localStorage.setItem('G_CONNECTED', 'true'); document.getElementById('syncStatus').style.display = 'inline-block'; }
         function handleAuth(r) { onSignIn(r); }
 
@@ -111,7 +111,6 @@
         function showPage(p) { activePage = p; render(); }
 
         function render() {
-            updateListSelector();
             const list = db.lists[db.currentId];
             document.getElementById('listNameDisplay').innerText = list.name;
             const container = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
@@ -132,13 +131,11 @@
                                 <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
                                 <div class="flex-1 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'} text-right">${item.name}</div>
                             </div>
-                            <button onclick="removeItem(${idx})" class="trash-btn ml-2 flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
+                            <button onclick="removeItem(${idx})" class="trash-btn ml-2 flex-shrink-0">🗑️</button>
                         </div>
                         <div class="flex justify-between items-center">
                             <span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600 cursor-pointer">₪${subTotal.toFixed(2)}</span>
-                            <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1 border border-gray-100">
+                            <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-3 py-1 border border-gray-100 shadow-inner">
                                 <button onclick="changeQty(${idx}, 1)" class="text-green-500 font-black text-2xl px-1">+</button>
                                 <span class="font-black text-xl w-6 text-center">${item.qty}</span>
                                 <button onclick="changeQty(${idx}, -1)" class="text-red-500 font-black text-2xl px-1">-</button>
@@ -156,10 +153,11 @@
                     const isSel = db.selectedInSummary.includes(id);
                     if (isSel) total += lt;
                     const div = document.createElement('div');
-                    div.className = "item-card flex flex-row items-center justify-between";
+                    div.className = "item-card flex flex-row items-center justify-between cursor-pointer active:bg-gray-50 transition-colors";
+                    div.onclick = () => { db.currentId = id; showPage('lists'); };
                     div.innerHTML = `
                         <div class="flex items-center gap-4 flex-1">
-                            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
+                            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="event.stopPropagation(); toggleSum('${id}')" class="w-7 h-7 accent-indigo-600 flex-shrink-0">
                             <span class="font-bold text-slate-700 flex-1 text-right text-xl">${l.name}</span>
                         </div>
                         <div class="text-indigo-600 font-black text-xl ml-4">₪${lt.toFixed(2)}</div>`;
@@ -206,7 +204,7 @@
         function prepareNewListModal() { document.getElementById('newListNameInput').value = ''; openModal('newListModal'); }
         function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
         function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
-        function updateListSelector() { const s = document.getElementById('listSelector'); s.innerHTML = ''; Object.keys(db.lists).forEach(id => { const o = document.createElement('option'); o.value = id; o.innerText = db.lists[id].name; o.selected = (id === db.currentId); s.appendChild(o); }); }
+        function updateListSelector() {} 
         function switchList(id) { db.currentId = id; render(); }
         function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
         function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
@@ -215,6 +213,8 @@
         function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
         function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
         function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank'); }
+
+        window.onload = render;
     </script>
 </body>
 </html>
