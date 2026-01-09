@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ניהול תקציב וקניות חכם</title>
+    <title>SmartBudget - WhatsApp & Red Trash</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -12,11 +12,10 @@
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 220px; min-height: 100vh; overflow-x: hidden; }
-        .top-nav-card { background: white; border-radius: 20px; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .item-card, .summary-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: fit-content; }
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 15px 15px 35px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
         .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
-        .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
+        .tab-active { background: #7367f0; color: white; }
         .tab-inactive { background: white; color: #666; }
         .auto-expand-input { border: none; background: transparent; font-weight: bold; outline: none; width: 100%; resize: none; overflow: hidden; display: block; line-height: 1.3; min-height: 1.2em; font-family: inherit; white-space: pre-wrap; word-wrap: break-word; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
@@ -28,17 +27,6 @@
         <h1 class="text-indigo-600 font-bold ml-2">SmartBudget</h1>
         <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
         <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
-    </div>
-
-    <div id="priceModal" class="modal-overlay">
-        <div class="bg-white w-80 p-6 rounded-3xl text-center shadow-2xl">
-            <h2 class="text-lg font-bold mb-4 text-indigo-600">עדכון מחיר</h2>
-            <input type="number" id="newPriceInput" inputmode="decimal" class="w-full p-3 border rounded-xl mb-4 text-center text-xl font-bold outline-none">
-            <div class="flex gap-3">
-                <button onclick="confirmPriceUpdate()" class="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl">עדכן</button>
-                <button onclick="closeModal('priceModal')" class="flex-1 py-3 bg-gray-100 font-bold rounded-xl">ביטול</button>
-            </div>
-        </div>
     </div>
 
     <div id="deleteModal" class="modal-overlay">
@@ -58,51 +46,54 @@
         </div>
 
         <div id="pageLists">
-            <div class="top-nav-card flex gap-2 items-center">
-                <select id="listSelector" onchange="switchList(this.value)" class="flex-1 p-2 bg-gray-50 rounded-lg font-bold outline-none text-indigo-600 min-w-0"></select>
-                <button onclick="createNewList()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold flex-shrink-0">+ רשימה</button>
-            </div>
-
             <div class="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100">
                 <div class="flex justify-between items-start">
-                    <div class="flex-1 min-w-0">
-                        <textarea id="listNameDisplay" class="auto-expand-input text-2xl" rows="1" oninput="autoExpand(this)" onblur="updateCurrentListName(this.value)"></textarea>
-                        <div id="statusTag" class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold mt-1">מצב עריכה</div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button onclick="shareToWhatsApp()" class="w-10 h-10 flex items-center justify-center bg-green-50 rounded-full text-green-500 border border-green-100">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </button>
+                        <button onclick="deleteEntireList()" class="w-10 h-10 flex items-center justify-center bg-red-50 rounded-full text-red-500 border border-red-100">
+                            🗑️
+                        </button>
                     </div>
-                    <div class="flex gap-1 flex-shrink-0">
-                        <button onclick="shareToWhatsApp()" class="p-2 text-indigo-500 bg-indigo-50 rounded-full">📩</button>
-                        <button onclick="deleteEntireList()" class="p-2 text-red-500 bg-red-50 rounded-full">🗑️</button>
+                    <div class="flex-1 min-w-0 text-left">
+                        <textarea id="listNameDisplay" class="auto-expand-input text-2xl text-left" rows="1" oninput="autoExpand(this)" onblur="updateCurrentListName(this.value)"></textarea>
+                        <div id="statusTag" class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold mt-1">מצב עריכה</div>
                     </div>
                 </div>
             </div>
 
-            <div id="inputForm" class="hidden bg-white p-5 rounded-3xl shadow-lg mb-4 border-2 border-indigo-400">
-                <input type="text" id="itemName" placeholder="שם המוצר" class="w-full p-3 border rounded-xl mb-3 outline-none">
-                <input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר" class="w-full p-3 border rounded-xl mb-3 outline-none">
-                <div class="flex gap-2">
-                    <button onclick="addItem()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold text-lg">הוסף</button>
-                    <button onclick="toggleInputForm()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">סגור</button>
-                </div>
-            </div>
             <div id="itemsContainer"></div>
         </div>
 
         <div id="pageSummary" class="hidden">
-            <h2 class="text-xl font-bold mb-4 text-slate-700 px-1">ריכוז תקציבים</h2>
+            <h2 class="text-xl font-bold mb-4 text-slate-700 px-1 text-right">ריכוז תקציבים</h2>
             <div id="summaryContainer"></div>
         </div>
     </div>
 
     <div class="bottom-bar text-white">
         <div class="flex justify-around mb-6 text-center">
-            <div><div class="text-[10px] opacity-70" id="labelTotal">סה"כ רשימה</div><div class="text-2xl font-bold">₪<span id="displayTotal">0.00</span></div></div>
+            <div><div class="text-[10px] opacity-70">סה"כ רשימה</div><div class="text-2xl font-bold">₪<span id="displayTotal">0.00</span></div></div>
             <div class="w-px bg-white/20 h-10 self-center"></div>
-            <div><div class="text-[10px] opacity-70" id="labelPaid">שולם ברשימה</div><div class="text-2xl font-bold">₪<span id="displayPaid">0.00</span></div></div>
+            <div><div class="text-[10px] opacity-70">שולם ברשימה</div><div class="text-2xl font-bold">₪<span id="displayPaid">0.00</span></div></div>
         </div>
         <div id="footerActions" class="flex items-center justify-around">
-            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-[#ff9f43] rounded-full flex items-center justify-center shadow-lg transition">🔓</button>
-            <button onclick="toggleInputForm()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-4xl">+</button>
-            <button onclick="openModal('deleteModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg text-white">🗑️</button>
+            <button onclick="openModal('deleteModal')" class="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center shadow-lg text-white text-2xl">🗑️</button>
+            <button onclick="toggleInputForm()" class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-4xl">+</button>
+            <button id="lockBtn" onclick="toggleLock()" class="w-14 h-14 bg-orange-400 rounded-full flex items-center justify-center shadow-lg text-white text-2xl">🔓</button>
+        </div>
+    </div>
+
+    <div id="inputForm" class="hidden fixed inset-0 z-[6000] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white w-80 p-6 rounded-3xl shadow-2xl">
+            <h2 class="text-lg font-bold mb-4 text-indigo-600">הוספת מוצר</h2>
+            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full p-3 border rounded-xl mb-3 outline-none">
+            <input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר" class="w-full p-3 border rounded-xl mb-6 outline-none">
+            <div class="flex gap-2">
+                <button onclick="addItem()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold">הוסף</button>
+                <button onclick="toggleInputForm()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">ביטול</button>
+            </div>
         </div>
     </div>
 
@@ -113,7 +104,7 @@
             lists: { 'L1': { name: 'הרשימה שלי', items: [] } }
         };
 
-        let isLocked = false, activePage = 'lists', editIdx = null, sortableInstance = null;
+        let isLocked = false, activePage = 'lists';
 
         function autoExpand(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; }
         function save() { localStorage.setItem('BUDGET_APP_FINAL', JSON.stringify(db)); render(); }
@@ -123,11 +114,8 @@
             activePage = page;
             document.getElementById('pageLists').style.display = (page === 'lists') ? 'block' : 'none';
             document.getElementById('pageSummary').style.display = (page === 'summary') ? 'block' : 'none';
-            document.getElementById('footerActions').style.display = (page === 'lists') ? 'flex' : 'none';
             document.getElementById('tabLists').className = `tab-btn ${page === 'lists' ? 'tab-active' : 'tab-inactive'}`;
             document.getElementById('tabSummary').className = `tab-btn ${page === 'summary' ? 'tab-active' : 'tab-inactive'}`;
-            document.getElementById('labelTotal').innerText = (page === 'lists') ? 'סה"כ רשימה' : 'סה"כ נבחרות';
-            document.getElementById('labelPaid').innerText = (page === 'lists') ? 'שולם ברשימה' : 'שולם בנבחרות';
             render();
         }
 
@@ -137,11 +125,8 @@
         }
 
         function renderListsPage() {
-            updateListSelector();
             const list = db.lists[db.currentId];
-            const nameEl = document.getElementById('listNameDisplay');
-            nameEl.value = list.name;
-            setTimeout(() => autoExpand(nameEl), 0);
+            document.getElementById('listNameDisplay').value = list.name;
             const container = document.getElementById('itemsContainer');
             container.innerHTML = '';
             let total = 0, paid = 0;
@@ -156,28 +141,22 @@
                         <div class="flex items-start gap-3 flex-1 min-w-0">
                             <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-6 h-6 mt-1 accent-indigo-600 flex-shrink-0">
                             <div class="flex-1 min-w-0">
-                                <textarea class="auto-expand-input text-xl ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'}" rows="1" oninput="autoExpand(this)" onblur="updateItemName(${idx}, this.value)">${item.name}</textarea>
+                                <textarea class="auto-expand-input text-xl ${item.checked ? 'line-through text-gray-300' : 'text-slate-800'}" rows="1" onblur="updateItemName(${idx}, this.value)">${item.name}</textarea>
                             </div>
                         </div>
-                        <button onclick="removeItem(${idx})" class="text-red-300 p-1">🗑️</button>
                     </div>
                     <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-2 py-1 border border-gray-100">
+                        <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-2 py-1">
                             <button onclick="qty(${idx}, 1)" class="text-green-500 font-bold text-xl px-2">+</button>
                             <span class="font-bold w-6 text-center">${item.qty}</span>
                             <button onclick="qty(${idx}, -1)" class="text-red-500 font-bold text-xl px-2">-</button>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <span onclick="openPriceModal(${idx})" class="text-lg font-bold text-indigo-600 cursor-pointer">₪${subTotal.toFixed(2)}</span>
-                            <div class="drag-handle text-gray-300 text-xl cursor-grab ${isLocked ? 'hidden' : ''}">⠿</div>
-                        </div>
+                        <span class="text-lg font-bold text-indigo-600">₪${subTotal.toFixed(2)}</span>
                     </div>`;
                 container.appendChild(div);
-                autoExpand(div.querySelector('textarea'));
             });
             document.getElementById('displayTotal').innerText = total.toFixed(2);
             document.getElementById('displayPaid').innerText = paid.toFixed(2);
-            initSortable();
         }
 
         function renderSummaryPage() {
@@ -191,43 +170,29 @@
                 const isSel = db.selectedInSummary.includes(id);
                 if (isSel) { tTotal += lTotal; tPaid += lPaid; }
                 const div = document.createElement('div');
-                div.className = "summary-card flex flex-row justify-between items-start";
+                div.className = "summary-card flex justify-between";
                 div.innerHTML = `
-                    <div class="flex items-start gap-3 flex-1 min-w-0">
-                        <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSummarySelect('${id}')" class="w-6 h-6 mt-1 accent-indigo-600">
-                        <span class="font-bold text-slate-700 text-lg break-words leading-tight flex-1">${list.name}</span>
-                    </div>
-                    <div class="text-left ml-2"><div class="text-xs text-gray-400">₪${lTotal.toFixed(2)}</div><div class="text-xs text-indigo-500 font-bold">₪${lPaid.toFixed(2)}</div></div>`;
+                    <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSummarySelect('${id}')" class="w-6 h-6 accent-indigo-600">
+                    <span class="font-bold text-slate-700 flex-1 px-4">${list.name}</span>
+                    <div class="text-left font-bold text-indigo-600 text-sm">₪${lTotal.toFixed(2)}</div>`;
                 container.appendChild(div);
             });
             document.getElementById('displayTotal').innerText = tTotal.toFixed(2);
             document.getElementById('displayPaid').innerText = tPaid.toFixed(2);
         }
 
-        function updateListSelector() {
-            const s = document.getElementById('listSelector'); s.innerHTML = '';
-            Object.keys(db.lists).forEach(id => {
-                const o = document.createElement('option'); o.value = id; o.innerText = db.lists[id].name; o.selected = (id === db.currentId); s.appendChild(o);
-            });
-        }
-        function switchList(id) { db.currentId = id; save(); }
-        function createNewList() { const id = 'L' + Date.now(); db.lists[id] = { name: 'רשימה חדשה', items: [] }; db.currentId = id; save(); }
-        function deleteEntireList() { if (Object.keys(db.lists).length <= 1) return alert("אי אפשר למחוק את האחרונה"); if (confirm("מחק לצמיתות?")) { delete db.lists[db.currentId]; db.currentId = Object.keys(db.lists)[0]; save(); } }
         function updateCurrentListName(v) { db.lists[db.currentId].name = v || "ללא שם"; save(); }
         function updateItemName(idx, v) { db.lists[db.currentId].items[idx].name = v || "מוצר"; save(); }
         function toggleItem(idx) { db.lists[db.currentId].items[idx].checked = !db.lists[db.currentId].items[idx].checked; save(); }
         function qty(idx, v) { const item = db.lists[db.currentId].items[idx]; if (item.qty + v >= 1) { item.qty += v; save(); } }
-        function removeItem(idx) { db.lists[db.currentId].items.splice(idx, 1); save(); }
-        function toggleInputForm() { document.getElementById('inputForm').classList.toggle('hidden'); if(!document.getElementById('inputForm').classList.contains('hidden')) document.getElementById('itemName').focus(); }
-        function addItem() { const n = document.getElementById('itemName').value; const p = parseFloat(document.getElementById('itemPrice').value) || 0; if (!n) return; db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; toggleInputForm(); save(); }
+        function deleteEntireList() { if (confirm("למחוק הכל?")) { db.lists[db.currentId].items = []; save(); } }
+        function toggleInputForm() { document.getElementById('inputForm').classList.toggle('hidden'); }
+        function addItem() { const n = document.getElementById('itemName').value, p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); toggleInputForm(); save(); }
         function toggleSummarySelect(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
-        function openPriceModal(idx) { editIdx = idx; document.getElementById('newPriceInput').value = db.lists[db.currentId].items[idx].price; document.getElementById('priceModal').style.display = 'flex'; setTimeout(() => document.getElementById('newPriceInput').select(), 100); }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function confirmPriceUpdate() { db.lists[db.currentId].items[editIdx].price = parseFloat(document.getElementById('newPriceInput').value) || 0; closeModal('priceModal'); save(); }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function confirmClearAll() { db.lists[db.currentId].items = []; closeModal('deleteModal'); save(); }
         function toggleLock() { isLocked = !isLocked; document.getElementById('statusTag').innerText = isLocked ? "נעול" : "מצב עריכה"; render(); }
-        function initSortable() { const el = document.getElementById('itemsContainer'); if (sortableInstance) sortableInstance.destroy(); if (!isLocked) sortableInstance = Sortable.create(el, { handle: '.drag-handle', animation: 150, onEnd: (e) => { const items = db.lists[db.currentId].items; const item = items.splice(e.oldIndex, 1)[0]; items.splice(e.newIndex, 0, item); localStorage.setItem('BUDGET_APP_FINAL', JSON.stringify(db)); } }); }
         function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank'); }
 
         window.onload = render;
