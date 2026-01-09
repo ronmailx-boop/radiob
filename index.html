@@ -2,95 +2,92 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBudget - ניהול מלא</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartBudget Pro</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f7f6; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; }
+        :root { --primary: #2c3e50; --purple: #6c5ce7; --bg: #f4f7f6; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding-bottom: 160px; }
         
-        /* כותרת קבועה */
-        .header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        /* כותרת עליונה עם חיבור גוגל */
+        .header { background: var(--primary); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         
-        /* עיצוב מלבנים דינמיים - פתרון לחיתוך טקסט */
-        .item-card { 
+        /* מלבני תוכן דינמיים - לא נחתכים */
+        .card { 
             background: white; margin: 10px; padding: 15px; border-radius: 12px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-wrap: wrap; min-height: 60px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; 
+            align-items: center; flex-wrap: wrap; min-height: 60px;
         }
-        .item-name { flex: 1; font-weight: bold; color: var(--primary); word-wrap: break-word; font-size: 1.1em; padding-left: 10px; }
-        .item-val { font-size: 1.2em; color: #e74c3c; font-weight: bold; }
+        .item-text { flex: 1; font-weight: bold; color: var(--primary); word-wrap: break-word; font-size: 1.1em; padding-left: 10px; }
+        .item-price { font-size: 1.2em; color: #e74c3c; font-weight: bold; }
 
-        /* תפריט תחתון (עמודים) */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid #ddd; }
-        .nav-btn { background: none; border: none; font-weight: bold; color: var(--primary); cursor: pointer; }
-        .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        /* המלבן הסגול התחתון והכפתורים */
+        .footer-panel { 
+            position: fixed; bottom: 0; width: 100%; background: var(--purple); 
+            padding: 20px 0; border-radius: 25px 25px 0 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 999;
+        }
+        .btn-group { display: flex; gap: 20px; justify-content: center; width: 100%; }
+        .action-btn { 
+            background: white; border: none; width: 55px; height: 55px; border-radius: 50%; 
+            font-size: 24px; display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer;
+        }
+        
+        /* ניווט בין עמודים */
+        .nav-tabs { display: flex; gap: 40px; color: white; font-weight: bold; font-size: 1.1em; }
+        .nav-link { opacity: 0.6; cursor: pointer; }
+        .nav-link.active { opacity: 1; border-bottom: 2px solid white; }
 
-        .page { display: none; padding: 15px; }
+        .page { display: none; }
         .page.active { display: block; }
-
-        .input-group { background: white; padding: 15px; border-radius: 12px; margin: 10px; display: flex; flex-direction: column; gap: 10px; }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        .main-btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 style="margin:0;">SmartBudget</h2>
+    <h3 style="margin:0;">SmartBudget</h3>
     <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="onSignIn"></div>
     <div class="g_id_signin" data-type="icon" data-shape="circle"></div>
 </div>
 
-<div id="page1" class="page active">
-    <h3>🛒 רשימת קניות</h3>
-    <div class="input-group">
-        <input type="text" id="shopItem" placeholder="שם מוצר">
-        <input type="number" id="shopPrice" placeholder="מחיר משוער">
-        <button class="main-btn" onclick="addShop()">הוסף לסל</button>
-    </div>
-    <div id="shopList"></div>
-</div>
-
-<div id="page2" class="page">
-    <h3>📊 ריכוז תקציבים שנתי</h3>
-    <div id="budgetList">
-        <div class="item-card">
-            <div class="item-name">הפניקס ביטוח מקיף - תשלום שנתי לרכב</div>
-            <div class="item-val">₪4,500</div>
-        </div>
+<div id="budgetPage" class="page active">
+    <h2 style="text-align:center; padding: 10px;">📊 ריכוז תקציבים</h2>
+    <div class="card">
+        <div class="item-text">הפניקס ביטוח מקיף - תשלום שנתי לרכב</div>
+        <div class="item-price">₪4,500</div>
     </div>
 </div>
 
-<div class="nav-bar">
-    <button class="nav-btn active" onclick="showPage(1, this)">קניות</button>
-    <button class="nav-btn" onclick="showPage(2, this)">ריכוז תקציב</button>
+<div id="shopPage" class="page">
+    <h2 style="text-align:center; padding: 10px;">🛒 רשימת קניות</h2>
+    </div>
+
+<div class="footer-panel">
+    <div class="btn-group">
+        <button class="action-btn" onclick="toggleLock()">🔓</button>
+        <button class="action-btn" onclick="addItem()" style="background: #27ae60; color: white; width: 65px; height: 65px; font-size: 30px;">+</button>
+        <button class="action-btn" onclick="toggleEdit()">✏️</button>
+    </div>
+    
+    <div class="nav-tabs">
+        <span class="nav-link" onclick="switchTab('shop', this)">קניות</span>
+        <span class="nav-link active" onclick="switchTab('budget', this)">ריכוז תקציב</span>
+    </div>
 </div>
 
 <script>
-    function showPage(num, btn) {
+    function switchTab(type, el) {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('page' + num).classList.add('active');
-        btn.classList.add('active');
+        el.classList.add('active');
+        document.getElementById(type + 'Page').classList.add('active');
     }
 
-    function onSignIn(resp) { console.log("מחובר!"); }
-
-    function addShop() {
-        const name = document.getElementById('shopItem').value;
-        const price = document.getElementById('shopPrice').value;
-        if(name && price) {
-            const container = document.getElementById('shopList');
-            container.innerHTML += `
-                <div class="item-card">
-                    <div class="item-name">${name}</div>
-                    <div class="item-val">₪${price}</div>
-                </div>`;
-            document.getElementById('shopItem').value = '';
-            document.getElementById('shopPrice').value = '';
-        }
-    }
+    function onSignIn(resp) { console.log("Cloud Connected"); }
+    function addItem() { alert("פתיחת חלון הוספה..."); }
+    function toggleLock() { alert("רשימה ננעלה"); }
+    function toggleEdit() { alert("מצב עריכה הופעל"); }
 </script>
 
 </body>
