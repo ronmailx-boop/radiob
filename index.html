@@ -10,30 +10,48 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; overflow-x: hidden; }
-        .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: fit-content; }
+        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; overflow-x: hidden; transition: background 0.3s; }
+        .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: fit-content; transition: background 0.3s; }
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
         .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
         .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
         .tab-inactive { background: white; color: #666; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
-        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; }
+        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; transition: background 0.3s; }
         .status-tag { font-size: 11px; font-weight: bold; color: #28c76f; background: #e8f9ef; padding: 2px 8px; border-radius: 6px; display: none; margin-left: 8px; }
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
-        .trash-btn { width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2); border: none; cursor: pointer; }
+        .trash-btn { width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2); border: none; cursor: pointer; transition: background 0.3s; }
         .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
         .list-delete-btn { color: #ffb4b4; transition: 0.2s; padding: 5px; cursor: pointer; }
         .list-delete-btn:hover { color: #ef4444; }
+
+        /* Dark Mode Styles */
+        body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
+        .dark-mode .app-header { background: #16213e; border-bottom: 1px solid #0f3460; }
+        .dark-mode .item-card { background: #0f3460; color: white; }
+        .dark-mode .tab-inactive { background: #16213e; color: #909090; }
+        .dark-mode .edit-modal { background: #16213e; color: white; }
+        .dark-mode .trash-btn { background: #1a1a2e; }
+        .dark-mode .bg-white { background-color: #0f3460 !important; }
+        .dark-mode .text-slate-700 { color: #e0e0e0 !important; }
+        .dark-mode .text-slate-800 { color: #ffffff !important; }
     </style>
 </head>
 <body>
 
     <div class="app-header">
-        <div class="flex items-center">
+        <div class="flex items-center gap-2">
             <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
             <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
+            
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <svg id="themeIcon" class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path id="themeIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+
             <span id="syncStatus" class="status-tag">מחובר ✅</span>
         </div>
         <h1 class="text-indigo-600 font-bold text-xl">Vplus</h1>
@@ -110,8 +128,32 @@
 
         window.onload = function() {
             if (localStorage.getItem('G_CONN') === 'true') document.getElementById('syncStatus').style.display = 'inline-block';
+            
+            // Load theme preference
+            if (localStorage.getItem('THEME') === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeIcon(true);
+            }
+            
             render();
         };
+
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('THEME', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const path = document.getElementById('themeIconPath');
+            if (isDark) {
+                // Sun Icon
+                path.setAttribute('d', 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z');
+            } else {
+                // Moon Icon
+                path.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
+            }
+        }
 
         function showPage(p) { activePage = p; render(); }
 
