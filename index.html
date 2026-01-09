@@ -102,7 +102,7 @@
 
     <script>
         let db = JSON.parse(localStorage.getItem('BUDGET_FINAL_V27')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
-        let isLocked = true, activePage = 'lists', sortableInstance = null, currentEditIdx = null, listToDelete = null;
+        let isLocked = true, activePage = 'lists', sortableInstance = null, sortableSummaryInstance = null, currentEditIdx = null, listToDelete = null;
 
         function save() { localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); render(); }
         function onSignIn(r) { localStorage.setItem('G_CONN', 'true'); document.getElementById('syncStatus').style.display = 'inline-block'; }
@@ -171,7 +171,6 @@
                         </div>`;
                     container.appendChild(div);
                 });
-                initSortable();
             } else {
                 document.getElementById('pageLists').style.display = 'none';
                 document.getElementById('pageSummary').style.display = 'block';
@@ -192,6 +191,7 @@
 
                     const div = document.createElement('div');
                     div.className = "item-card flex flex-col gap-2";
+                    div.dataset.id = id;
                     div.innerHTML = `
                         <div class="flex flex-row items-center justify-between">
                             <div class="flex items-center gap-4 flex-1">
@@ -214,6 +214,7 @@
                 const allSel = Object.keys(db.lists).length > 0 && Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
                 const sa = document.getElementById('selectAllLists'); if(sa) sa.checked = allSel;
             }
+            initSortable();
             document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
             document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
             document.getElementById('displayTotal').innerText = total.toFixed(2);
@@ -232,15 +233,31 @@
         }
 
         function initSortable() {
-            const el = document.getElementById('itemsContainer');
             if (sortableInstance) sortableInstance.destroy();
-            if (!isLocked && activePage === 'lists') {
-                sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
-                    const items = db.lists[db.currentId].items;
-                    const moved = items.splice(e.oldIndex, 1)[0];
-                    items.splice(e.newIndex, 0, moved);
-                    save();
-                }});
+            if (sortableSummaryInstance) sortableSummaryInstance.destroy();
+
+            if (!isLocked) {
+                if (activePage === 'lists') {
+                    const el = document.getElementById('itemsContainer');
+                    sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                        const items = db.lists[db.currentId].items;
+                        const moved = items.splice(e.oldIndex, 1)[0];
+                        items.splice(e.newIndex, 0, moved);
+                        save();
+                    }});
+                } else {
+                    const el = document.getElementById('summaryContainer');
+                    sortableSummaryInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                        const newOrder = {};
+                        const children = Array.from(el.children);
+                        children.forEach(child => {
+                            const id = child.dataset.id;
+                            newOrder[id] = db.lists[id];
+                        });
+                        db.lists = newOrder;
+                        save();
+                    }});
+                }
             }
         }
 
