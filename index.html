@@ -85,7 +85,9 @@
                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
             <button onclick="toggleInputForm()" class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-4xl font-bold">+</button>
-            <button id="lockBtn" onclick="toggleLock()" class="w-14 h-14 bg-orange-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-2xl">🔓</button>
+            <button id="lockBtn" onclick="toggleLock()" class="w-14 h-14 bg-orange-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-2xl">
+                <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+            </button>
         </div>
     </div>
 
@@ -155,7 +157,7 @@
             const btn = document.getElementById('lockBtn');
             const tag = document.getElementById('statusTag');
             btn.className = `w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white text-2xl transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`;
-            btn.innerText = isLocked ? '🔒' : '🔓';
+            btn.innerHTML = isLocked ? '<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z"/></svg>' : '<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>';
             tag.innerText = isLocked ? "נעול" : "מצב עריכה";
             tag.className = `inline-block px-3 py-1 rounded-full text-[10px] font-bold mt-1 ${isLocked ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`;
             render();
