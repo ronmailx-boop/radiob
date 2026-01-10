@@ -3,191 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <title>Vplus - Update 2026</title>
-    
-    <script src="https://cdn.tailwindcss.com?id=v4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js?v=2"></script>
-    <script src="https://accounts.google.com/gsi/client?v=3" async defer></script>
-    
+    <title>Vplus - New Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; transition: background 0.3s; }
+        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; }
         
-        /* המיתוג שביקשת - V ירוקה ו-plus סגול */
-        .v-brand { color: #22c55e !important; font-weight: 900; }
-        .plus-brand { color: #7367f0; font-weight: 900; }
+        /* המיתוג שביקשת */
+        .v-logo { color: #22c55e !important; font-weight: 900; }
+        .plus-logo { color: #7367f0; font-weight: 900; }
 
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 15px; border-radius: 30px 30px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
+        
+        .item-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; justify-content: space-between; }
+        
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
-        
-        .settings-card { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 400px; text-align: center; }
-        .item-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
-        
-        .s-tab { flex: 1; padding: 12px; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; color: #999; }
-        .s-tab.active { color: #7367f0; border-bottom: 3px solid #7367f0; }
+        .edit-modal { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 400px; text-align: center; }
 
-        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; font-weight: bold; cursor: pointer; }
         .tab-active { background: #7367f0; color: white; }
         .tab-inactive { background: white; color: #666; }
 
         body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
-        .dark-mode .app-header, .dark-mode .item-card, .dark-mode .settings-card { background: #16213e; color: white; }
+        .dark-mode .app-header, .dark-mode .item-card, .dark-mode .edit-modal { background: #16213e; color: white; }
     </style>
 </head>
-<body id="vplus-root">
+<body>
 
-    <div class="app-header bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm no-print">
-        <div class="flex items-center gap-3">
-            <button onclick="openModal('settingsModal')" class="p-2 bg-gray-50 dark:bg-gray-800 rounded-full">
-                <svg class="w-7 h-7 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </button>
-        </div>
-        <h1 class="text-2xl font-bold">
-            <span class="v-brand">V</span><span class="plus-brand">plus</span>
-        </h1>
+    <div class="app-header">
+        <button onclick="openModal('settingsModal')" class="p-2 bg-gray-50 dark:bg-gray-800 rounded-full">
+            <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </button>
+        <h1 class="text-xl font-bold"><span class="v-logo">V</span><span class="plus-logo">plus</span></h1>
     </div>
 
     <div class="max-w-md mx-auto p-4">
-        <div class="flex gap-2 mb-6 no-print">
-            <div id="t1" onclick="showPage('lists')" class="tab-btn tab-active shadow-sm">הרשימה שלי</div>
-            <div id="t2" onclick="showPage('summary')" class="tab-btn tab-inactive shadow-sm">הרשימות שלי</div>
+        <div class="flex gap-2 mb-6">
+            <div id="t1" onclick="showPage('lists')" class="tab-btn tab-active">הרשימה שלי</div>
+            <div id="t2" onclick="showPage('summary')" class="tab-btn tab-inactive">הרשימות שלי</div>
         </div>
+        <div id="itemsContainer"></div>
+    </div>
 
-        <div id="pageLists">
-            <div class="text-center text-3xl font-black mb-6 text-indigo-600" id="listNameTitle">טוען...</div>
-            <div id="itemsContainer"></div>
-        </div>
-
-        <div id="pageSummary" class="hidden">
-            <div id="summaryContainer"></div>
-        </div>
+    <div class="bottom-bar flex justify-around items-center">
+        <button onclick="openModal('confirmModal')" class="text-2xl opacity-50">🗑️</button>
+        <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full text-white text-4xl font-bold shadow-lg">+</button>
+        <button onclick="toggleLock()" id="lockBtn" class="text-2xl">🔒</button>
     </div>
 
     <div id="settingsModal" class="modal-overlay">
-        <div class="settings-card shadow-2xl">
-            <div class="flex mb-6">
-                <div id="st1" onclick="switchSTab(1)" class="s-tab active">תצוגה</div>
-                <div id="st2" onclick="switchSTab(2)" class="s-tab">פעולות</div>
-            </div>
-            
-            <div id="sc1">
-                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-bold mb-4">החלף מצב לילה/יום 🌙</button>
-            </div>
-            
-            <div id="sc2" class="hidden">
-                <button onclick="window.print(); closeModal('settingsModal')" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
-                    <span>🖨️ שמור כ-PDF / הדפס</span>
-                </button>
-            </div>
-            
-            <button onclick="closeModal('settingsModal')" class="mt-6 text-gray-400 font-bold block w-full border-t pt-4">סגור</button>
+        <div class="edit-modal">
+            <h2 class="font-bold mb-4">הגדרות</h2>
+            <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-gray-700 p-4 rounded-xl mb-4">יום / לילה 🌙</button>
+            <button onclick="window.print()" class="w-full bg-orange-500 text-white p-4 rounded-xl">הדפסה 🖨️</button>
+            <button onclick="closeModal('settingsModal')" class="mt-4 text-gray-400">סגור</button>
         </div>
-    </div>
-
-    <div class="bottom-bar text-white flex justify-around items-center no-print">
-        <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center text-xl">🗑️</button>
-        <button onclick="openModal('inputForm')" class="w-16 h-16 rounded-full flex items-center justify-center text-4xl shadow-lg font-bold text-white" style="background-color: #22c55e;">+</button>
-        <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center text-xl">🔒</button>
     </div>
 
     <div id="inputForm" class="modal-overlay">
-        <div class="settings-card">
-            <h2 class="text-xl font-bold mb-4 text-indigo-600">הוספת מוצר</h2>
+        <div class="edit-modal">
+            <h2 class="font-bold mb-4 text-indigo-600">הוספת מוצר</h2>
             <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border p-4 rounded-xl mb-4 dark:bg-gray-800">
-            <button onclick="addItem()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-bold">הוסף</button>
-            <button onclick="closeModal('inputForm')" class="w-full mt-2 text-gray-400">ביטול</button>
+            <button onclick="addItem()" class="w-full bg-green-500 text-white p-4 rounded-xl font-bold">הוסף</button>
+            <button onclick="closeModal('inputForm')" class="mt-2 text-gray-400">ביטול</button>
         </div>
     </div>
 
-    <div id="confirmModal" class="modal-overlay"><div class="settings-card"><h2>למחוק הכל?</h2><div class="flex gap-2 mt-4"><button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button onclick="closeModal('confirmModal')" class="bg-gray-100 flex-1 py-4 rounded-xl font-bold">ביטול</button></div></div></div>
+    <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><div class="flex gap-2 mt-4"><button onclick="executeClear()" class="bg-red-500 text-white flex-1 p-4 rounded-xl font-bold">מחק</button><button onclick="closeModal('confirmModal')" class="bg-gray-100 flex-1 p-4 rounded-xl font-bold">ביטול</button></div></div></div>
 
     <script>
-        // ניקוי Service Workers אקטיבי כדי לשחרר את ה"נעילה" של כרום
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                for(let registration of registrations) { registration.unregister(); }
-            });
-        }
-
-        let db = JSON.parse(localStorage.getItem('VPLUS_STABLE_V1')) || { currentId: 'L1', lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
-        let activePage = 'lists', isLocked = true;
-
-        function save() { localStorage.setItem('VPLUS_STABLE_V1', JSON.stringify(db)); render(); }
-        function handleAuth(r) { console.log("Auth Success"); }
-
-        function showPage(p) {
-            activePage = p;
-            document.getElementById('t1').className = `tab-btn ${p==='lists'?'tab-active':'tab-inactive'}`;
-            document.getElementById('t2').className = `tab-btn ${p==='summary'?'tab-active':'tab-inactive'}`;
-            render();
-        }
-
-        function switchSTab(n) {
-            document.getElementById('st1').classList.toggle('active', n===1);
-            document.getElementById('st2').classList.toggle('active', n===2);
-            document.getElementById('sc1').classList.toggle('hidden', n!==1);
-            document.getElementById('sc2').classList.toggle('hidden', n!==2);
-        }
-
+        let db = JSON.parse(localStorage.getItem('VPLUS_V100')) || { items: [] };
+        
+        function save() { localStorage.setItem('VPLUS_V100', JSON.stringify(db)); render(); }
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function render() {
-            const list = db.lists[db.currentId];
-            document.getElementById('listNameTitle').innerText = list.name;
-            const container = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
+            const container = document.getElementById('itemsContainer');
             container.innerHTML = '';
-            
-            if (activePage === 'lists') {
-                document.getElementById('pageLists').style.display = 'block';
-                document.getElementById('pageSummary').style.display = 'none';
-                list.items.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = "item-card";
-                    div.innerHTML = `<b>${item.name}</b> <span class="text-indigo-600 font-bold">₪0.00</span>`;
-                    container.appendChild(div);
-                });
-            } else {
-                document.getElementById('pageLists').style.display = 'none';
-                document.getElementById('pageSummary').style.display = 'block';
-                Object.keys(db.lists).forEach(id => {
-                    const div = document.createElement('div');
-                    div.className = "item-card";
-                    div.innerHTML = `<b>${db.lists[id].name}</b>`;
-                    container.appendChild(div);
-                });
-            }
+            db.items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = "item-card";
+                div.innerHTML = `<b>${item.name}</b> <span class="text-indigo-600">₪0.00</span>`;
+                container.appendChild(div);
+            });
         }
 
         function addItem() {
             const n = document.getElementById('itemName').value;
-            if(n) {
-                db.lists[db.currentId].items.push({name:n, price:0, qty:1});
-                save(); closeModal('inputForm');
-                document.getElementById('itemName').value = '';
-            }
+            if(n) { db.items.push({name:n}); save(); closeModal('inputForm'); document.getElementById('itemName').value=''; }
         }
 
-        function toggleDarkMode() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('THEME', isDark ? 'dark' : 'light');
-        }
-
-        function toggleLock() { isLocked = !isLocked; document.getElementById('lockBtn').innerText = isLocked ? "🔒" : "🔓"; }
-        function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
-
-        window.onload = function() {
-            if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode');
-            render();
-        };
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function executeClear() { db.items = []; save(); closeModal('confirmModal'); }
+        
+        window.onload = render;
     </script>
 </body>
 </html>
