@@ -20,13 +20,9 @@
         .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; }
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
-        
-        /* כפתור פח - לבן נקי עם צל קל */
         .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; cursor: pointer; }
-        
         .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
         .list-delete-btn { color: #fca5a5; padding: 5px; cursor: pointer; }
-
         body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
         .dark-mode .app-header { background: #16213e; border-bottom: 1px solid #0f3460; }
         .dark-mode .item-card { background: #0f3460; color: white; }
@@ -34,7 +30,6 @@
         .dark-mode .edit-modal { background: #16213e; color: white; }
         .dark-mode .bg-white { background-color: #0f3460 !important; }
         .dark-mode .trash-btn { background: #1a1a2e; }
-
         @media print {
             .no-print, .bottom-bar, .app-header, .tab-btn, .modal-overlay, .trash-btn, input[type="checkbox"], button { display: none !important; }
             body { background: white !important; }
@@ -55,7 +50,6 @@
         <div class="flex items-center gap-2">
             <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
             <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
-
             <button onclick="openModal('settingsModal')" class="p-2 rounded-full hover:bg-gray-100">
                 <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             </button>
@@ -129,7 +123,29 @@
 
         function save() { localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); render(); }
         function showPage(p) { activePage = p; render(); }
-        function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='inputForm') setTimeout(()=>document.getElementById('itemName').focus(),100); }
+        
+        function openModal(id) { 
+            const modal = document.getElementById(id);
+            modal.classList.add('active'); 
+            
+            // איפוס שדות בשינוי שם, עדכון מחיר או רשימה חדשה
+            if(id === 'editListNameModal') {
+                document.getElementById('editListNameInput').value = '';
+                setTimeout(() => document.getElementById('editListNameInput').focus(), 100);
+            }
+            if(id === 'editTotalModal') {
+                document.getElementById('editTotalInput').value = '';
+                setTimeout(() => document.getElementById('editTotalInput').focus(), 100);
+            }
+            if(id === 'newListModal') {
+                document.getElementById('newListNameInput').value = '';
+                setTimeout(() => document.getElementById('newListNameInput').focus(), 100);
+            }
+            if(id === 'inputForm') {
+                setTimeout(() => document.getElementById('itemName').focus(), 100);
+            }
+        }
+        
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function switchSTab(n) { document.getElementById('sc1').classList.toggle('hidden', n!==1); document.getElementById('sc2').classList.toggle('hidden', n!==2); document.getElementById('st1').classList.toggle('active', n===1); document.getElementById('st2').classList.toggle('active', n===2); }
 
@@ -256,9 +272,7 @@
 
         function openEditTotalModal(idx) { 
             currentEditIdx = idx; 
-            document.getElementById('editTotalInput').value = ''; 
             openModal('editTotalModal'); 
-            setTimeout(()=>document.getElementById('editTotalInput').focus(), 100); 
         }
 
         function saveTotal() { 
@@ -277,9 +291,7 @@
         function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode')?'dark':'light'); }
         
         function prepareNewListModal() { 
-            document.getElementById('newListNameInput').value = ''; 
             openModal('newListModal'); 
-            setTimeout(()=>document.getElementById('newListNameInput').focus(), 100);
         }
 
         function prepareDeleteList(id) { 
