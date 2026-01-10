@@ -7,57 +7,51 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <title>Vplus 2026</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>Vplus - Update 2026</title>
+    
+    <script src="https://cdn.tailwindcss.com?id=v4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js?v=2"></script>
+    <script src="https://accounts.google.com/gsi/client?v=3" async defer></script>
     
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; transition: background 0.3s; }
         
-        /* לוגו: V ירוקה ו-plus סגול */
-        .v-logo { color: #22c55e !important; font-weight: 900; }
-        .plus-logo { color: #7367f0; font-weight: 900; }
+        /* המיתוג שביקשת - V ירוקה ו-plus סגול */
+        .v-brand { color: #22c55e !important; font-weight: 900; }
+        .plus-brand { color: #7367f0; font-weight: 900; }
 
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.1); }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
         
-        .settings-card { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .settings-card { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 400px; text-align: center; }
         .item-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
         
         .s-tab { flex: 1; padding: 12px; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; color: #999; }
         .s-tab.active { color: #7367f0; border-bottom: 3px solid #7367f0; }
 
-        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; }
         .tab-active { background: #7367f0; color: white; }
         .tab-inactive { background: white; color: #666; }
 
         body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
         .dark-mode .app-header, .dark-mode .item-card, .dark-mode .settings-card { background: #16213e; color: white; }
-
-        @media print {
-            .no-print, button, .bottom-bar, .modal-overlay, .app-header { display: none !important; }
-            body { background: white !important; color: black !important; padding: 10px !important; }
-            #pageSummary { display: block !important; }
-            .item-card { border: 1px solid #eee; box-shadow: none; break-inside: avoid; }
-        }
     </style>
 </head>
-<body>
+<body id="vplus-root">
 
     <div class="app-header bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm no-print">
-        <div class="flex items-center gap-2">
-            <button onclick="openModal('settingsModal')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+        <div class="flex items-center gap-3">
+            <button onclick="openModal('settingsModal')" class="p-2 bg-gray-50 dark:bg-gray-800 rounded-full">
                 <svg class="w-7 h-7 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
             </button>
         </div>
-        <h1 class="text-2xl">
-            <span class="v-logo">V</span><span class="plus-logo">plus</span>
+        <h1 class="text-2xl font-bold">
+            <span class="v-brand">V</span><span class="plus-brand">plus</span>
         </h1>
     </div>
 
@@ -68,7 +62,7 @@
         </div>
 
         <div id="pageLists">
-            <div class="text-center text-3xl font-black mb-6 text-indigo-600" id="listTitleDisplay"></div>
+            <div class="text-center text-3xl font-black mb-6 text-indigo-600" id="listNameTitle">טוען...</div>
             <div id="itemsContainer"></div>
         </div>
 
@@ -85,9 +79,7 @@
             </div>
             
             <div id="sc1">
-                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-bold mb-4">מצב לילה/יום 🌙</button>
-                <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth"></div>
-                <div class="g_id_signin" data-type="standard"></div>
+                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-bold mb-4">החלף מצב לילה/יום 🌙</button>
             </div>
             
             <div id="sc2" class="hidden">
@@ -100,7 +92,7 @@
         </div>
     </div>
 
-    <div class="bottom-bar flex justify-around items-center no-print">
+    <div class="bottom-bar text-white flex justify-around items-center no-print">
         <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center text-xl">🗑️</button>
         <button onclick="openModal('inputForm')" class="w-16 h-16 rounded-full flex items-center justify-center text-4xl shadow-lg font-bold text-white" style="background-color: #22c55e;">+</button>
         <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center text-xl">🔒</button>
@@ -108,37 +100,28 @@
 
     <div id="inputForm" class="modal-overlay">
         <div class="settings-card">
-            <h2 class="text-xl font-bold mb-4">הוספת מוצר</h2>
-            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border p-4 rounded-xl mb-4 dark:bg-gray-800 dark:border-gray-700">
-            <button onclick="addItem()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-bold">הוסף מוצר</button>
+            <h2 class="text-xl font-bold mb-4 text-indigo-600">הוספת מוצר</h2>
+            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border p-4 rounded-xl mb-4 dark:bg-gray-800">
+            <button onclick="addItem()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-bold">הוסף</button>
             <button onclick="closeModal('inputForm')" class="w-full mt-2 text-gray-400">ביטול</button>
         </div>
     </div>
 
-    <div id="confirmModal" class="modal-overlay">
-        <div class="settings-card text-center">
-            <h2 class="text-xl font-bold mb-6">למחוק את כל הרשימה?</h2>
-            <div class="flex gap-2">
-                <button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button>
-                <button onclick="closeModal('confirmModal')" class="bg-gray-100 dark:bg-gray-800 flex-1 py-4 rounded-xl font-bold text-gray-500">ביטול</button>
-            </div>
-        </div>
-    </div>
+    <div id="confirmModal" class="modal-overlay"><div class="settings-card"><h2>למחוק הכל?</h2><div class="flex gap-2 mt-4"><button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button onclick="closeModal('confirmModal')" class="bg-gray-100 flex-1 py-4 rounded-xl font-bold">ביטול</button></div></div></div>
 
     <script>
-        // *** מנקה Service Workers ישנים - מחזיר את הרענון המהיר ***
+        // ניקוי Service Workers אקטיבי כדי לשחרר את ה"נעילה" של כרום
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(registrations => {
-                for(let registration of registrations) registration.unregister();
+                for(let registration of registrations) { registration.unregister(); }
             });
         }
 
-        // טעינת נתונים - מפתח קבוע לשמירה על המידע
-        let db = JSON.parse(localStorage.getItem('VPLUS_LIVE_DB')) || { currentId: 'L1', lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let db = JSON.parse(localStorage.getItem('VPLUS_STABLE_V1')) || { currentId: 'L1', lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let activePage = 'lists', isLocked = true;
 
-        function save() { localStorage.setItem('VPLUS_LIVE_DB', JSON.stringify(db)); render(); }
-        function handleAuth(r) { console.log("Google Authed"); }
+        function save() { localStorage.setItem('VPLUS_STABLE_V1', JSON.stringify(db)); render(); }
+        function handleAuth(r) { console.log("Auth Success"); }
 
         function showPage(p) {
             activePage = p;
@@ -159,7 +142,7 @@
 
         function render() {
             const list = db.lists[db.currentId];
-            document.getElementById('listTitleDisplay').innerText = list.name;
+            document.getElementById('listNameTitle').innerText = list.name;
             const container = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
             container.innerHTML = '';
             
