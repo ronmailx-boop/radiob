@@ -6,6 +6,7 @@
     <title>Vplus - ניהול תקציב חכם</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 220px; min-height: 100vh; overflow-x: hidden; transition: background 0.3s; }
@@ -19,14 +20,19 @@
         .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; }
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
-        .trash-btn { width: 44px; height: 44px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; border: none; cursor: pointer; }
+        .trash-btn { width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2); border: none; cursor: pointer; }
         .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
-        .list-delete-btn { color: #fca5a5; padding: 5px; }
+        
+        body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
+        .dark-mode .app-header { background: #16213e; border-bottom: 1px solid #0f3460; }
+        .dark-mode .item-card { background: #0f3460; color: white; }
+        .dark-mode .tab-inactive { background: #16213e; color: #909090; }
+        .dark-mode .edit-modal { background: #16213e; color: white; }
+        .dark-mode .trash-btn { background: #1a1a2e; }
 
         @media print {
-            body { background: white !important; }
             .no-print, .bottom-bar, .app-header, .tab-btn, .modal-overlay, .trash-btn, input[type="checkbox"], button { display: none !important; }
-            #pageLists, #pageSummary { display: none !important; }
+            body { background: white !important; }
             #printArea { display: block !important; padding: 20px; }
             .print-list-section { margin-bottom: 30px; border-bottom: 2px solid #7367f0; padding-bottom: 10px; break-inside: avoid; }
             .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; direction: rtl; }
@@ -41,9 +47,14 @@
 <body>
 
     <div class="app-header no-print">
-        <button onclick="openModal('settingsModal')" class="p-2 rounded-full hover:bg-gray-100">
-            <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        </button>
+        <div class="flex items-center gap-2">
+            <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
+            <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
+
+            <button onclick="openModal('settingsModal')" class="p-2 rounded-full hover:bg-gray-100">
+                <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+        </div>
         <h1 class="font-bold text-2xl"><span style="color: #22c55e !important;">V</span><span class="text-indigo-600">plus</span></h1>
     </div>
 
@@ -96,7 +107,7 @@
     <div id="newListModal" class="modal-overlay"><div class="edit-modal"><h2>רשימה חדשה</h2><input type="text" id="newListNameInput" placeholder="שם הרשימה"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveNewList()">צור</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('newListModal')">ביטול</button></div></div></div>
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם</h2><input type="text" id="editListNameInput"><button class="bg-indigo-600 text-white w-full py-4 rounded-xl font-bold" onclick="saveListName()">שמור</button></div></div></div>
     <div id="editTotalModal" class="modal-overlay"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal"><button class="bg-indigo-600 text-white w-full py-4 rounded-xl font-bold" onclick="saveTotal()">שמור</button></div></div></div>
-    <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
+    <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><p class="text-sm text-gray-400 mb-6">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות. האם להמשיך?</p><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
     <div id="deleteListModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק את הרשימה?</h2><div class="flex gap-3"><button id="confirmDeleteListBtn" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('deleteListModal')">ביטול</button></div></div></div>
 
     <script>
@@ -127,10 +138,10 @@
                     div.innerHTML = `
                         <div class="flex justify-between items-center mb-4">
                             <div class="flex items-center gap-3"><input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 accent-indigo-600"><span class="text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : ''}">${item.name}</span></div>
-                            <button onclick="removeItem(${idx})" class="trash-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke="currentColor"></path></svg></button>
+                            <button onclick="removeItem(${idx})" class="trash-btn no-print"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke="currentColor"></path></svg></button>
                         </div>
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1 border"><button onclick="changeQty(${idx}, 1)" class="text-green-500 text-2xl font-bold">+</button><span class="font-bold w-6 text-center">${item.qty}</span><button onclick="changeQty(${idx}, -1)" class="text-red-500 text-2xl font-bold">-</button></div>
+                            <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1 border no-print"><button onclick="changeQty(${idx}, 1)" class="text-green-500 text-2xl font-bold">+</button><span class="font-bold w-6 text-center">${item.qty}</span><button onclick="changeQty(${idx}, -1)" class="text-red-500 text-2xl font-bold">-</button></div>
                             <span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600">₪${sub.toFixed(2)}</span>
                         </div>`;
                     container.appendChild(div);
@@ -197,13 +208,12 @@
         function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
         function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
         function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode')?'dark':'light'); }
         function prepareNewListModal() { document.getElementById('newListNameInput').value = ''; openModal('newListModal'); }
         function prepareDeleteList(id) { if (Object.keys(db.lists).length <= 1) return; listToDelete = id; openModal('deleteListModal'); }
         document.getElementById('confirmDeleteListBtn').onclick = function() { if (listToDelete) { delete db.lists[listToDelete]; if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0]; save(); closeModal('deleteListModal'); } };
         function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text)); }
-
-        window.onload = render;
+        function handleAuth(r) { document.getElementById('settingsModal').classList.add('active'); }
     </script>
 </body>
 </html>
