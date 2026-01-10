@@ -9,15 +9,17 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 220px; min-height: 100vh; overflow-x: hidden; transition: background 0.3s; }
+        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 240px; min-height: 100vh; overflow-x: hidden; transition: background 0.3s; }
         .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; transition: background 0.3s; }
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 35px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
+        
+        /* עידכון הבר התחתון */
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 20px 15px 35px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
+        
         .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
         .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
         .tab-inactive { background: white; color: #666; }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
-        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; }
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
         .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; cursor: pointer; }
@@ -30,6 +32,7 @@
         .dark-mode .edit-modal { background: #16213e; color: white; }
         .dark-mode .bg-white { background-color: #0f3460 !important; }
         .dark-mode .trash-btn { background: #1a1a2e; }
+
         @media print {
             .no-print, .bottom-bar, .app-header, .tab-btn, .modal-overlay, .trash-btn, input[type="checkbox"], button { display: none !important; }
             body { background: white !important; }
@@ -90,23 +93,30 @@
     <div id="printArea"></div>
 
     <div class="bottom-bar text-white no-print">
-        <div class="flex justify-between mb-4 text-center">
-            <div class="flex-1">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex-1 text-center">
                 <div class="text-[10px] opacity-70">סה"כ רשימה</div>
-                <div class="text-lg font-bold">₪<span id="displayTotal">0.00</span></div>
+                <div class="text-xl font-bold">₪<span id="displayTotal">0.00</span></div>
             </div>
-            <div class="flex-1">
-                <div class="text-[10px] opacity-70">נשאר לשלם</div>
-                <div class="text-lg font-bold text-orange-300">₪<span id="displayLeft">0.00</span></div>
+            
+            <div class="flex-shrink-0">
+                <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-4xl font-bold">+</button>
             </div>
-            <div class="flex-1">
+
+            <div class="flex-1 text-center">
                 <div class="text-[10px] opacity-70">שולם ברשימה</div>
-                <div class="text-lg font-bold">₪<span id="displayPaid">0.00</span></div>
+                <div class="text-xl font-bold">₪<span id="displayPaid">0.00</span></div>
             </div>
         </div>
-        <div class="flex items-center justify-around">
+
+        <div class="flex items-center justify-between">
             <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-            <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-4xl font-bold">+</button>
+            
+            <div class="text-center flex-1">
+                <div class="text-[10px] opacity-70">נשאר לשלם</div>
+                <div class="text-2xl font-black text-orange-300">₪<span id="displayLeft">0.00</span></div>
+            </div>
+
             <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></button>
         </div>
     </div>
@@ -165,13 +175,8 @@
                 Object.keys(db.lists).forEach(id => {
                     const l = db.lists[id];
                     let lTotal = 0, lPaidIndividual = 0;
-                    l.items.forEach(i => { 
-                        const subItem = i.price * i.qty; 
-                        lTotal += subItem; 
-                        if (i.checked) lPaidIndividual += subItem; 
-                    });
-                    const isSel = db.selectedInSummary.includes(id); 
-                    if (isSel) { total += lTotal; paid += lPaidIndividual; }
+                    l.items.forEach(i => { const subItem = i.price * i.qty; lTotal += subItem; if (i.checked) lPaidIndividual += subItem; });
+                    const isSel = db.selectedInSummary.includes(id); if (isSel) { total += lTotal; paid += lPaidIndividual; }
                     const div = document.createElement('div');
                     div.className = "item-card p-4";
                     div.dataset.id = id;
