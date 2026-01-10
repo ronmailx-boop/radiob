@@ -19,13 +19,11 @@ function openModal(id) {
     const m = document.getElementById(id);
     if(!m) return;
     m.classList.add('active'); 
-    // ניקוי שדות - תמיד ריק
     if(id === 'inputForm') {
         document.getElementById('itemName').value = '';
         document.getElementById('itemPrice').value = '';
         setTimeout(() => document.getElementById('itemName').focus(), 150);
     }
-    if(id === 'newListModal') document.getElementById('newListNameInput').value = '';
 }
 function closeModal(id) { const m = document.getElementById(id); if(m) m.classList.remove('active'); }
 
@@ -68,67 +66,55 @@ function render() {
 }
 
 function addItem() { 
-    const nameVal = document.getElementById('itemName').value.trim();
-    const priceVal = parseFloat(document.getElementById('itemPrice').value) || 0; 
-    if (nameVal) { 
-        db.lists[db.currentId].items.push({ name: nameVal, price: priceVal, qty: 1, checked: false }); 
-        closeModal('inputForm');
-        save(); 
-    } 
+    const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; 
+    if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); closeModal('inputForm'); save(); } 
 }
-
 function saveNewList() { 
     const nameVal = document.getElementById('newListNameInput').value.trim(); 
     if(nameVal){ 
-        const id = 'L'+Date.now(); 
-        db.lists[id] = {name: nameVal, items:[]}; 
-        db.currentId = id; 
-        activePage = 'lists'; 
-        closeModal('newListModal'); 
-        save(); 
+        const id = 'L'+Date.now(); db.lists[id] = {name: nameVal, items:[]}; 
+        db.currentId = id; activePage = 'lists'; closeModal('newListModal'); save(); 
     } 
 }
-
 function initSortable() {
     const el = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
     if (sortableInstance) sortableInstance.destroy();
     if (el && !isLocked) {
-        sortableInstance = Sortable.create(el, { animation: 150, onEnd: () => {
-            if (activePage === 'lists') { /* product sort logic */ } else { /* list sort logic */ } save();
-        }});
+        sortableInstance = Sortable.create(el, { animation: 150, onEnd: () => save() });
     }
 }
-
+function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
+function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
+function deleteFullList() { 
+    if (listToDelete) { 
+        delete db.lists[listToDelete]; 
+        const keys = Object.keys(db.lists); 
+        if (db.currentId === listToDelete) db.currentId = keys[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); 
+        save(); closeModal('deleteListModal'); 
+    } 
+}
 function preparePrint() { 
     closeModal('settingsModal');
     let printArea = document.getElementById('printArea');
     let html = `<h1 style="text-align:center; color:#7367f0;">דוח קניות - Vplus</h1>`;
     Object.keys(db.lists).forEach(id => {
         const l = db.lists[id];
-        html += `<h3>${l.name}</h3><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;"><thead><tr><th style="border:1px solid #ddd; padding:8px;">מוצר</th><th style="border:1px solid #ddd; padding:8px;">סה"כ</th></tr></thead><tbody>`;
-        l.items.forEach(i => html += `<tr><td style="border:1px solid #ddd; padding:8px;">${i.name} (x${i.qty})</td><td style="border:1px solid #ddd; padding:8px;">₪${(i.price*i.qty).toFixed(2)}</td></tr>`);
+        html += `<h3>${l.name}</h3><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;"><thead><tr><th style="padding:8px; border:1px solid #ddd;">מוצר</th><th style="padding:8px; border:1px solid #ddd;">סה"כ</th></tr></thead><tbody>`;
+        l.items.forEach(i => html += `<tr><td style="padding:8px; border:1px solid #ddd;">${i.name} (x${i.qty})</td><td style="padding:8px; border:1px solid #ddd;">₪${(i.price*i.qty).toFixed(2)}</td></tr>`);
         html += `</tbody></table><br>`;
     });
-    printArea.innerHTML = html;
-    window.print();
+    printArea.innerHTML = html; window.print();
 }
-
-// שאר הפונקציות הבסיסיות
 function toggleLock() { isLocked = !isLocked; render(); }
 function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
 function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
 function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
-function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
-function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
-document.getElementById('confirmDeleteListBtn').onclick = function() { 
-    if (listToDelete) { delete db.lists[listToDelete]; if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); save(); closeModal('deleteListModal'); } 
-};
-function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
-function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
-function toggleDarkMode() { document.body.classList.toggle('dark-mode'); save(); }
 function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
 function openEditTotalModal(idx) { currentEditIdx = idx; openModal('editTotalModal'); }
 function saveTotal() { const val = parseFloat(document.getElementById('editTotalInput').value); if (!isNaN(val)) { const item = db.lists[db.currentId].items[currentEditIdx]; item.price = val / item.qty; save(); } closeModal('editTotalModal'); }
+function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
+function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
+function toggleDarkMode() { document.body.classList.toggle('dark-mode'); save(); }
 function shareToWhatsApp() { const list = db.lists[db.currentId]; let text = `🛒 *${list.name}*\n`; list.items.forEach(i => text += `• ${i.name}: ₪${(i.price*i.qty).toFixed(2)}\n`); window.open("https://wa.me/?text=" + encodeURIComponent(text)); }
 
-window.onload = function() { render(); };
+window.onload = function() { if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); render(); };
