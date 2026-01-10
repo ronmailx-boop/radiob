@@ -18,16 +18,17 @@ function showPage(p) { activePage = p; save(); }
 
 function openModal(id) { 
     const modal = document.getElementById(id);
-    if (!modal) return;
-    modal.classList.add('active'); 
-    if(['editListNameModal', 'editTotalModal', 'newListModal'].includes(id)) {
-        const inputId = id.replace('Modal', 'Input');
-        const input = document.getElementById(inputId);
-        if (input) { input.value = ''; setTimeout(() => input.focus(), 100); }
-    }
-    if(id === 'inputForm') {
-        const itemInput = document.getElementById('itemName');
-        if (itemInput) setTimeout(() => itemInput.focus(), 100);
+    if (modal) {
+        modal.classList.add('active'); 
+        if(['editListNameModal', 'editTotalModal', 'newListModal'].includes(id)) {
+            const inputId = id.replace('Modal', 'Input');
+            const input = document.getElementById(inputId);
+            if (input) { input.value = ''; setTimeout(() => input.focus(), 100); }
+        }
+        if(id === 'inputForm') {
+            const itemInput = document.getElementById('itemName');
+            if (itemInput) setTimeout(() => itemInput.focus(), 100);
+        }
     }
 }
 
@@ -61,7 +62,7 @@ function render() {
         document.getElementById('listNameDisplay').innerText = list.name;
         list.items.forEach((item, idx) => {
             const sub = item.price * item.qty; total += sub; if (item.checked) paid += sub;
-            const div = document.createElement('div'); div.className = "item-card";
+            const div = document.createElement('div'); div.className = "item-card"; div.dataset.id = idx;
             div.innerHTML = `<div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3 flex-1"><input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 accent-indigo-600 flex-shrink-0"><div class="flex-1 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : ''} text-right">${item.name}</div></div><button onclick="removeItem(${idx})" class="trash-btn no-print"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke="currentColor"></path></svg></button></div><div class="flex justify-between items-center"><div class="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1 border no-print"><button onclick="changeQty(${idx}, 1)" class="text-green-500 text-2xl font-bold">+</button><span class="font-bold w-6 text-center">${item.qty}</span><button onclick="changeQty(${idx}, -1)" class="text-red-500 text-2xl font-bold">-</button></div><span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600 cursor-pointer">₪${sub.toFixed(2)}</span></div>`;
             container.appendChild(div);
         });
@@ -73,7 +74,7 @@ function render() {
             let lTotal = 0, lPaidInd = 0;
             l.items.forEach(i => { const s = i.price * i.qty; lTotal += s; if(i.checked) lPaidInd += s; });
             const isSel = db.selectedInSummary.includes(id); if (isSel) { total += lTotal; paid += lPaidInd; }
-            const div = document.createElement('div'); div.className = "item-card p-4";
+            const div = document.createElement('div'); div.className = "item-card p-4"; div.dataset.id = id;
             div.innerHTML = `<div class="flex justify-between items-center"><div class="flex items-center gap-4"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId='${id}'; showPage('lists')">${l.name}</span></div><div class="text-indigo-600 font-black text-xl ml-2">₪${lTotal.toFixed(2)}</div></div><div class="text-xs text-green-500 font-bold mt-2">שולם ברשימה: ₪${lPaidInd.toFixed(2)}</div>`;
             container.appendChild(div);
         });
@@ -84,20 +85,29 @@ function render() {
     initSortable();
 }
 
-function addItem() { 
-    const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; 
-    if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; } 
-}
-
 function initSortable() {
-    const el = document.getElementById('itemsContainer');
+    const el = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
     if (sortableInstance) sortableInstance.destroy();
-    if (el && !isLocked && activePage === 'lists') {
-        sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => { const items = db.lists[db.currentId].items; items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]); save(); }});
+    if (el && !isLocked) {
+        sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+            if (activePage === 'lists') {
+                const items = db.lists[db.currentId].items;
+                items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]);
+            } else {
+                const keys = Object.keys(db.lists);
+                const movedKey = keys.splice(e.oldIndex, 1)[0];
+                keys.splice(e.newIndex, 0, movedKey);
+                const newLists = {};
+                keys.forEach(k => newLists[k] = db.lists[k]);
+                db.lists = newLists;
+            }
+            save();
+        }});
     }
 }
 
 function toggleLock() { isLocked = !isLocked; document.getElementById('lockBtn').className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`; document.getElementById('lockIconPath').setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z'); document.getElementById('statusTag').innerText = isLocked ? "נעול" : "עריכה"; initSortable(); }
+function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; } }
 function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
 function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
 function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
@@ -108,7 +118,7 @@ function saveTotal() { const val = parseFloat(document.getElementById('editTotal
 function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
 function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
 function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
-function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode')?'dark':'light'); }
+function toggleDarkMode() { document.body.classList.toggle('dark-mode'); save(); }
 function prepareNewListModal() { openModal('newListModal'); }
 function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
 document.getElementById('confirmDeleteListBtn').onclick = function() { if (listToDelete) { delete db.lists[listToDelete]; if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); save(); closeModal('deleteListModal'); } };
@@ -120,26 +130,18 @@ function preparePrint() {
     printArea.innerHTML = `<h1 style="text-align:center; color:#7367f0; font-size:28px; margin-bottom:20px;">דוח קניות מפורט - Vplus</h1>`;
     let grandTotal = 0;
     const selectedIds = db.selectedInSummary.length > 0 ? db.selectedInSummary : Object.keys(db.lists);
-    
     selectedIds.forEach(id => {
         const list = db.lists[id];
         let listTotal = 0;
         let listHtml = `<div style="margin-bottom:30px; border-bottom:2px solid #7367f0; padding-bottom:10px;"><h3>${list.name}</h3><table style="width:100%; border-collapse:collapse; margin-top:10px;"><thead><tr><th style="border:1px solid #ddd; padding:8px;">מוצר</th><th style="border:1px solid #ddd; padding:8px;">כמות</th><th style="border:1px solid #ddd; padding:8px;">סה"כ</th></tr></thead><tbody>`;
-        list.items.forEach(item => {
-            const sub = item.price * item.qty; listTotal += sub;
-            listHtml += `<tr><td style="border:1px solid #ddd; padding:8px;">${item.name}</td><td style="border:1px solid #ddd; padding:8px;">${item.qty}</td><td style="border:1px solid #ddd; padding:8px;">₪${sub.toFixed(2)}</td></tr>`;
-        });
+        list.items.forEach(item => { const sub = item.price * item.qty; listTotal += sub; listHtml += `<tr><td style="border:1px solid #ddd; padding:8px;">${item.name}</td><td style="border:1px solid #ddd; padding:8px;">${item.qty}</td><td style="border:1px solid #ddd; padding:8px;">₪${sub.toFixed(2)}</td></tr>`; });
         listHtml += `</tbody></table><div style="font-weight:bold; margin-top:5px;">סה"כ לרשימה: ₪${listTotal.toFixed(2)}</div></div>`;
         printArea.innerHTML += listHtml; grandTotal += listTotal;
     });
     printArea.innerHTML += `<div style="font-size:24px; font-weight:900; color:#7367f0; text-align:center; border:3px solid #7367f0; padding:10px; margin-top:20px;">סה"כ כולל: ₪${grandTotal.toFixed(2)}</div>`;
     window.print(); 
 }
-
 function handleAuthClick() { alert("תשתית ענן מוכנה."); }
 function handleAuth(r) { console.log("Success"); }
 
-window.onload = function() { 
-    if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); 
-    render(); 
-};
+window.onload = function() { if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); render(); };
