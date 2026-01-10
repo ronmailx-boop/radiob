@@ -1,18 +1,19 @@
 let db = JSON.parse(localStorage.getItem('BUDGET_FINAL_V27')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
 let isLocked = true, activePage = 'lists', currentEditIdx = null, listToDelete = null;
 let sortableInstance = null;
-let isCloudSynced = false;
 
 function save() { 
     localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); 
     render(); 
 }
 
-function showPage(p) { activePage = p; render(); }
+function showPage(p) { 
+    activePage = p; 
+    render(); 
+}
 
 function openModal(id) { 
-    const modal = document.getElementById(id);
-    modal.classList.add('active'); 
+    document.getElementById(id).classList.add('active'); 
     if(['editListNameModal', 'editTotalModal', 'newListModal'].includes(id)) {
         const inputId = id.replace('Modal', 'Input');
         document.getElementById(inputId).value = '';
@@ -35,6 +36,10 @@ function render() {
     if (!container) return;
     container.innerHTML = '';
     let total = 0, paid = 0;
+
+    // עדכון כפתורי הטאבים
+    document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
+    document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
 
     if (activePage === 'lists') {
         const list = db.lists[db.currentId];
@@ -60,13 +65,10 @@ function render() {
             div.innerHTML = `<div class="flex justify-between items-center"><div class="flex items-center gap-4"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId='${id}'; showPage('lists')">${l.name}</span></div><div class="text-indigo-600 font-black text-xl ml-2">₪${lTotal.toFixed(2)}</div></div><div class="text-xs text-green-500 font-bold mt-2">שולם ברשימה: ₪${lPaidInd.toFixed(2)}</div>`;
             container.appendChild(div);
         });
-        const sa = document.getElementById('selectAllLists'); if(sa) sa.checked = Object.keys(db.lists).length > 0 && Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
     }
     document.getElementById('displayTotal').innerText = total.toFixed(2);
     document.getElementById('displayPaid').innerText = paid.toFixed(2);
     document.getElementById('displayLeft').innerText = (total - paid).toFixed(2);
-    document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
-    document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
     initSortable();
 }
 
@@ -89,15 +91,15 @@ function saveTotal() { const val = parseFloat(document.getElementById('editTotal
 function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
 function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
 function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
-function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode')?'dark':'light'); }
+function toggleDarkMode() { document.body.classList.toggle('dark-mode'); save(); }
 function prepareNewListModal() { openModal('newListModal'); }
 function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
 document.getElementById('confirmDeleteListBtn').onclick = function() { if (listToDelete) { delete db.lists[listToDelete]; if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); save(); closeModal('deleteListModal'); } };
 function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text)); }
 function preparePrint() { closeModal('settingsModal'); window.print(); }
 
-function handleAuthClick() { alert("תשתית ענן מוכנה."); }
-function handleAuth(r) { console.log("Success"); }
+function handleAuthClick() { alert("הכנה לענן הושלמה. בשלב הבא נגדיר Client ID ב-Google Cloud."); }
+function handleAuth(r) { console.log("Google Auth Success"); }
 
 window.onload = function() { 
     if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); 
