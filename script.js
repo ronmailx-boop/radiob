@@ -1,44 +1,34 @@
-/* --- Cloud Configuration --- */
-const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
-const SCOPES = "https://www.googleapis.com/auth/drive.appdata";
-let tokenClient;
-let isCloudSynced = false;
-
-/* --- Data Management --- */
 let db = JSON.parse(localStorage.getItem('BUDGET_FINAL_V27')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
 let isLocked = true, activePage = 'lists', currentEditIdx = null, listToDelete = null;
-let sortableInstance = null, sortableSummaryInstance = null;
+let sortableInstance = null;
+let isCloudSynced = false;
 
-async function save() { 
+function save() { 
     localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); 
     render(); 
-    if(isCloudSynced) uploadToCloud();
 }
 
-/* --- Cloud Functions --- */
-function handleAuthClick() {
-    // שלב הבא: פתיחת הרשאות גוגל
-    alert("הכנה לענן הושלמה. בשלב הבא נגדיר Client ID ב-Google Cloud.");
-}
-
-async function uploadToCloud() {
-    console.log("מעלה נתונים לענן...");
-    document.getElementById('cloudIndicator').style.backgroundColor = '#fbbf24'; // כתום - בתהליך
-}
-
-/* --- Original App Logic --- */
 function showPage(p) { activePage = p; render(); }
+
 function openModal(id) { 
-    document.getElementById(id).classList.add('active'); 
-    if(id === 'editListNameModal' || id === 'editTotalModal' || id === 'newListModal') {
+    const modal = document.getElementById(id);
+    modal.classList.add('active'); 
+    if(['editListNameModal', 'editTotalModal', 'newListModal'].includes(id)) {
         const inputId = id.replace('Modal', 'Input');
         document.getElementById(inputId).value = '';
         setTimeout(() => document.getElementById(inputId).focus(), 100);
     }
     if(id === 'inputForm') setTimeout(() => document.getElementById('itemName').focus(), 100);
 }
+
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-function switchSTab(n) { document.getElementById('sc1').classList.toggle('hidden', n!==1); document.getElementById('sc2').classList.toggle('hidden', n!==2); document.getElementById('st1').classList.toggle('active', n===1); document.getElementById('st2').classList.toggle('active', n===2); }
+
+function switchSTab(n) {
+    document.getElementById('sc1').classList.toggle('hidden', n !== 1);
+    document.getElementById('sc2').classList.toggle('hidden', n !== 2);
+    document.getElementById('st1').classList.toggle('active', n === 1);
+    document.getElementById('st2').classList.toggle('active', n === 2);
+}
 
 function render() {
     const container = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
@@ -63,17 +53,20 @@ function render() {
         document.getElementById('pageSummary').classList.remove('hidden');
         Object.keys(db.lists).forEach(id => {
             const l = db.lists[id];
-            let lTotal = 0, lPaidIndividual = 0;
-            l.items.forEach(i => { const subItem = i.price * i.qty; lTotal += subItem; if (i.checked) lPaidIndividual += subItem; });
-            const isSel = db.selectedInSummary.includes(id); if (isSel) { total += lTotal; paid += lPaidIndividual; }
-            const div = document.createElement('div'); div.className = "item-card p-4"; div.dataset.id = id;
-            div.innerHTML = `<div class="flex flex-row items-center justify-between"><div class="flex items-center gap-4 flex-1"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId = '${id}'; showPage('lists');">${l.name}</span></div><div class="flex items-center gap-2"><div class="text-indigo-600 font-black text-xl ml-2">₪${lTotal.toFixed(2)}</div><button onclick="prepareDeleteList('${id}')" class="list-delete-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke="currentColor"></path></svg></button></div></div><div class="flex justify-between items-center px-2 pt-2 border-t border-gray-50 mt-2"><span class="text-[10px] text-gray-400 font-bold">שולם ברשימה:</span><span class="text-sm font-bold text-green-500">₪${lPaidIndividual.toFixed(2)}</span></div>`;
+            let lTotal = 0, lPaidInd = 0;
+            l.items.forEach(i => { const s = i.price * i.qty; lTotal += s; if(i.checked) lPaidInd += s; });
+            const isSel = db.selectedInSummary.includes(id); if (isSel) { total += lTotal; paid += lPaidInd; }
+            const div = document.createElement('div'); div.className = "item-card p-4";
+            div.innerHTML = `<div class="flex justify-between items-center"><div class="flex items-center gap-4"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId='${id}'; showPage('lists')">${l.name}</span></div><div class="text-indigo-600 font-black text-xl ml-2">₪${lTotal.toFixed(2)}</div></div><div class="text-xs text-green-500 font-bold mt-2">שולם ברשימה: ₪${lPaidInd.toFixed(2)}</div>`;
             container.appendChild(div);
         });
+        const sa = document.getElementById('selectAllLists'); if(sa) sa.checked = Object.keys(db.lists).length > 0 && Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
     }
     document.getElementById('displayTotal').innerText = total.toFixed(2);
     document.getElementById('displayPaid').innerText = paid.toFixed(2);
     document.getElementById('displayLeft').innerText = (total - paid).toFixed(2);
+    document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
+    document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
     initSortable();
 }
 
@@ -101,6 +94,10 @@ function prepareNewListModal() { openModal('newListModal'); }
 function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
 document.getElementById('confirmDeleteListBtn').onclick = function() { if (listToDelete) { delete db.lists[listToDelete]; if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); save(); closeModal('deleteListModal'); } };
 function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text)); }
+function preparePrint() { closeModal('settingsModal'); window.print(); }
+
+function handleAuthClick() { alert("תשתית ענן מוכנה."); }
+function handleAuth(r) { console.log("Success"); }
 
 window.onload = function() { 
     if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); 
