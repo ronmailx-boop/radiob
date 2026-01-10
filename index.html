@@ -21,8 +21,8 @@
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
         
-        /* כפתור פח ורוד בהיר המקורי */
-        .trash-btn { width: 44px; height: 44px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; border: none; cursor: pointer; }
+        /* כפתור פח - חזר למראה המקורי (לבן עם צל) ללא רקע ורוד */
+        .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; cursor: pointer; }
         
         .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
         .list-delete-btn { color: #fca5a5; padding: 5px; }
@@ -33,11 +33,11 @@
         .dark-mode .tab-inactive { background: #16213e; color: #909090; }
         .dark-mode .edit-modal { background: #16213e; color: white; }
         .dark-mode .bg-white { background-color: #0f3460 !important; }
+        .dark-mode .trash-btn { background: #1a1a2e; }
 
         @media print {
-            body { background: white !important; }
             .no-print, .bottom-bar, .app-header, .tab-btn, .modal-overlay, .trash-btn, input[type="checkbox"], button { display: none !important; }
-            #pageLists, #pageSummary { display: none !important; }
+            body { background: white !important; }
             #printArea { display: block !important; padding: 20px; }
             .print-list-section { margin-bottom: 30px; border-bottom: 2px solid #7367f0; padding-bottom: 10px; break-inside: avoid; }
             .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; direction: rtl; }
@@ -111,8 +111,10 @@
     <div id="inputForm" class="modal-overlay"><div class="edit-modal"><h2>הוספת מוצר</h2><input type="text" id="itemName" placeholder="שם המוצר"><input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר"><div class="flex gap-3"><button class="bg-green-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="addItem()">הוסף</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('inputForm')">ביטול</button></div></div></div>
     <div id="newListModal" class="modal-overlay"><div class="edit-modal"><h2>רשימה חדשה</h2><input type="text" id="newListNameInput" placeholder="שם הרשימה"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveNewList()">צור</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('newListModal')">ביטול</button></div></div></div>
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם</h2><input type="text" id="editListNameInput"><button class="bg-indigo-600 text-white w-full py-4 rounded-2xl font-bold" onclick="saveListName()">שמור</button></div></div></div>
-    <div id="editTotalModal" class="modal-overlay"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal"><button class="bg-indigo-600 text-white w-full py-4 rounded-xl font-bold" onclick="saveTotal()">שמור</button></div></div></div>
+    <div id="editTotalModal" class="modal-overlay"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal"><button class="bg-indigo-600 text-white w-full py-4 rounded-2xl font-bold" onclick="saveTotal()">שמור</button></div></div></div>
+    
     <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><p class="text-sm text-gray-400 mb-6">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות. האם להמשיך?</p><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
+    
     <div id="deleteListModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק את הרשימה?</h2><div class="flex gap-3"><button id="confirmDeleteListBtn" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('deleteListModal')">ביטול</button></div></div></div>
 
     <script>
@@ -157,11 +159,7 @@
                 Object.keys(db.lists).forEach(id => {
                     const l = db.lists[id];
                     let lTotal = 0, lPaid = 0;
-                    l.items.forEach(i => { 
-                        const sub = i.price * i.qty; 
-                        lTotal += sub; 
-                        if (i.checked) lPaid += sub; 
-                    });
+                    l.items.forEach(i => { const sub = i.price * i.qty; lTotal += sub; if (i.checked) lPaid += sub; });
                     const isSel = db.selectedInSummary.includes(id); if (isSel) total += lTotal;
                     
                     const div = document.createElement('div');
@@ -232,6 +230,10 @@
         window.onload = function() {
             if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode');
             render();
+            // ניקוי Service Workers אם נשארו
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(rs => { for(let r of rs) r.unregister(); });
+            }
         };
     </script>
 </body>
