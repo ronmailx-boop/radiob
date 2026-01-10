@@ -3,158 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vplus - ניהול תקציב חכם</title>
-    <link rel="manifest" href="manifest.json">
+    <title>Vplus</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* עיצוב הלוגו - V ירוקה */
-        .v-green { color: #22c55e !important; }
-        .plus-indigo { color: #4f46e5 !important; }
-
-        /* הגדרות כלליות */
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; transition: background 0.3s; }
-        .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; transition: background 0.3s; }
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
-        
-        /* תפריט הגדרות */
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
-        .settings-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; text-align: center; }
-        .settings-tabs { display: flex; border-bottom: 1px solid #eee; margin-bottom: 20px; }
-        .s-tab { flex: 1; padding: 10px; cursor: pointer; font-weight: bold; color: #999; }
-        .s-tab.active { color: #7367f0; border-bottom: 3px solid #7367f0; }
-
-        /* כפתור הגדרות ב-Header */
-        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; }
-
+        .item-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; }
+        .tab-active { background: #7367f0; color: white; }
+        .tab-inactive { background: white; color: #666; }
+        
+        /* Dark Mode */
         body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
-        .dark-mode .app-header { background: #16213e; }
-        .dark-mode .item-card { background: #0f3460; }
-        .dark-mode .settings-modal { background: #16213e; color: white; }
+        body.dark-mode .item-card, body.dark-mode .app-header { background: #16213e; color: white; }
+        body.dark-mode .edit-modal { background: #16213e; color: white; }
+
+        /* Settings Tabs */
+        .s-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; }
+        .s-tab.active { border-bottom: 2px solid #7367f0; color: #7367f0; }
 
         @media print {
-            .no-print, .bottom-bar, .app-header, .tab-btn, .modal-overlay, button { display: none !important; }
-            body { background: white !important; padding: 10px !important; }
-            #pageSummary { display: block !important; }
+            .no-print, button, .bottom-bar, .modal-overlay { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
             .item-card { border: 1px solid #eee; box-shadow: none; break-inside: avoid; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-header">
-        <div class="flex items-center gap-2">
-            <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
-            <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
-            
-            <button onclick="openModal('settingsMenu')" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <svg class="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="app-header bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-3">
+            <button onclick="openModal('settingsModal')" class="p-2 bg-gray-50 rounded-full">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
             </button>
+            <span id="syncStatus" class="hidden text-xs text-green-500 font-bold">● מחובר</span>
         </div>
-        <h1 class="font-bold text-2xl">
-            <span class="v-green">V</span><span class="plus-indigo">plus</span>
+        <h1 class="text-2xl font-black">
+            <span style="color: #22c55e !important;">V</span><span style="color: #7367f0;">plus</span>
         </h1>
     </div>
 
     <div class="max-w-md mx-auto p-4">
-        <div class="flex gap-3 mb-6">
-            <div id="tabLists" onclick="showPage('lists')" class="tab-btn tab-active shadow-sm text-lg" style="flex:1; padding:12px; border-radius:15px; text-align:center; cursor:pointer;">הרשימה שלי</div>
-            <div id="tabSummary" onclick="showPage('summary')" class="tab-btn tab-inactive shadow-sm text-lg" style="flex:1; padding:12px; border-radius:15px; text-align:center; cursor:pointer;">הרשימות שלי</div>
+        <div class="flex gap-2 mb-6 no-print">
+            <div id="tab1" onclick="showPage('lists')" class="tab-btn tab-active">הרשימה שלי</div>
+            <div id="tab2" onclick="showPage('summary')" class="tab-btn tab-inactive">הרשימות שלי</div>
         </div>
 
         <div id="pageLists">
+            <div id="listNameDisplay" class="text-center text-2xl font-bold mb-4 text-indigo-600"></div>
             <div id="itemsContainer"></div>
         </div>
 
         <div id="pageSummary" class="hidden">
-            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm flex items-center gap-3">
-                <input type="checkbox" id="selectAllLists" onchange="toggleSelectAll(this.checked)" class="w-7 h-7">
-                <span class="font-bold text-lg">בחר את כל הרשימות</span>
-            </div>
             <div id="summaryContainer"></div>
         </div>
     </div>
 
-    <div id="settingsMenu" class="modal-overlay">
-        <div class="settings-modal">
-            <div class="settings-tabs">
-                <div id="setTab1" class="s-tab active" onclick="changeSTab(1)">תצוגה</div>
-                <div id="setTab2" class="s-tab" onclick="changeSTab(2)">פעולות</div>
+    <div id="settingsModal" class="modal-overlay">
+        <div class="bg-white w-11/12 max-w-sm rounded-3xl p-6 shadow-2xl edit-modal">
+            <div class="flex mb-6">
+                <div id="sTabHead1" onclick="switchSettingsTab(1)" class="s-tab active">כללי</div>
+                <div id="sTabHead2" onclick="switchSettingsTab(2)" class="s-tab">הדפסה</div>
             </div>
             
-            <div id="sContent1">
-                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 text-indigo-600 py-4 rounded-2xl font-bold">החלף למצב לילה/יום 🌙</button>
+            <div id="sTabContent1">
+                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 text-indigo-600 py-4 rounded-2xl font-bold mb-4">החלף מצב לילה 🌙</button>
+                <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth"></div>
+                <div class="g_id_signin" data-type="standard"></div>
             </div>
             
-            <div id="sContent2" class="hidden">
-                <button onclick="window.print(); closeModal('settingsMenu')" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg">🖨️ הדפס סיכום / שמור PDF</button>
+            <div id="sTabContent2" class="hidden">
+                <p class="text-sm text-gray-400 mb-4">ייצוא הרשימות לקובץ PDF</p>
+                <button onclick="window.print()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
+                    <span>🖨️ שמור כ-PDF / הדפס</span>
+                </button>
             </div>
             
-            <button onclick="closeModal('settingsMenu')" class="mt-6 text-gray-400 font-bold">סגור</button>
+            <button onclick="closeModal('settingsModal')" class="w-full mt-6 text-gray-400 font-bold border-t pt-4">סגור</button>
         </div>
     </div>
 
-    <div class="bottom-bar text-white flex justify-around items-center">
-        <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-4xl shadow-2xl">+</button>
-        <div class="text-center">
-            <div class="text-[10px] opacity-70">סה"כ</div>
-            <div class="text-xl font-bold">₪<span id="displayTotal">0.00</span></div>
-        </div>
+    <div class="bottom-bar text-white flex justify-around items-center no-print">
+        <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-xl">🗑️</button>
+        <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-4xl shadow-lg" style="background-color: #22c55e;">+</button>
+        <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">🔒</button>
     </div>
 
     <div id="inputForm" class="modal-overlay">
-        <div class="settings-modal">
-            <h2 class="mb-4 font-bold">הוספת מוצר</h2>
-            <input type="text" id="itemName" placeholder="שם מוצר" class="w-full border p-3 rounded-xl mb-2">
-            <input type="number" id="itemPrice" placeholder="מחיר" class="w-full border p-3 rounded-xl mb-4">
+        <div class="bg-white w-11/12 max-w-sm rounded-3xl p-6 edit-modal">
+            <h2 class="text-xl font-bold mb-4">הוספת מוצר</h2>
+            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border p-4 rounded-xl mb-3 text-lg">
+            <input type="number" id="itemPrice" placeholder="מחיר" class="w-full border p-4 rounded-xl mb-4 text-lg" inputmode="decimal">
             <div class="flex gap-2">
-                <button onclick="addItem()" class="bg-green-500 text-white flex-1 py-3 rounded-xl">הוסף</button>
-                <button onclick="closeModal('inputForm')" class="bg-gray-100 flex-1 py-3 rounded-xl">ביטול</button>
+                <button onclick="addItem()" class="bg-green-500 text-white flex-1 py-4 rounded-xl font-bold">הוסף</button>
+                <button onclick="closeModal('inputForm')" class="bg-gray-100 flex-1 py-4 rounded-xl font-bold text-gray-500">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal-overlay">
+        <div class="bg-white w-11/12 max-w-sm rounded-3xl p-6 edit-modal">
+            <h2 class="text-xl font-bold mb-4">למחוק הכל?</h2>
+            <div class="flex gap-2">
+                <button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button>
+                <button onclick="closeModal('confirmModal')" class="bg-gray-100 flex-1 py-4 rounded-xl font-bold text-gray-500">ביטול</button>
             </div>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('VPLUS_DB_FINAL')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
-        let activePage = 'lists';
+        let db = JSON.parse(localStorage.getItem('VPLUS_V30')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        let activePage = 'lists', isLocked = true;
 
-        function save() { localStorage.setItem('VPLUS_DB_FINAL', JSON.stringify(db)); render(); }
+        function save() { localStorage.setItem('VPLUS_V30', JSON.stringify(db)); render(); }
+        function handleAuth(r) { document.getElementById('syncStatus').classList.remove('hidden'); }
 
-        function showPage(p) { 
-            activePage = p; 
-            document.getElementById('tabLists').className = p === 'lists' ? 'tab-btn tab-active' : 'tab-btn tab-inactive';
-            document.getElementById('tabSummary').className = p === 'summary' ? 'tab-btn tab-active' : 'tab-btn tab-inactive';
-            render(); 
+        window.onload = function() {
+            if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode');
+            render();
+        };
+
+        function showPage(p) {
+            activePage = p;
+            document.getElementById('tab1').className = `tab-btn ${p==='lists'?'tab-active':'tab-inactive'}`;
+            document.getElementById('tab2').className = `tab-btn ${p==='summary'?'tab-active':'tab-inactive'}`;
+            render();
         }
 
-        function changeSTab(n) {
-            document.getElementById('setTab1').classList.toggle('active', n === 1);
-            document.getElementById('setTab2').classList.toggle('active', n === 2);
-            document.getElementById('sContent1').classList.toggle('hidden', n !== 1);
-            document.getElementById('sContent2').classList.toggle('hidden', n !== 2);
+        function switchSettingsTab(n) {
+            document.getElementById('sTabHead1').classList.toggle('active', n===1);
+            document.getElementById('sTabHead2').classList.toggle('active', n===2);
+            document.getElementById('sTabContent1').classList.toggle('hidden', n!==1);
+            document.getElementById('sTabContent2').classList.toggle('hidden', n!==2);
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function render() {
+            const list = db.lists[db.currentId];
+            document.getElementById('listNameDisplay').innerText = list.name;
             const container = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
             container.innerHTML = '';
-            let total = 0;
 
             if (activePage === 'lists') {
                 document.getElementById('pageLists').classList.remove('hidden');
                 document.getElementById('pageSummary').classList.add('hidden');
-                db.lists[db.currentId].items.forEach((item, idx) => {
-                    total += (item.price * item.qty);
+                list.items.forEach((item, idx) => {
                     const div = document.createElement('div');
-                    div.className = "item-card p-4 flex flex-row justify-between items-center";
+                    div.className = "item-card flex justify-between items-center";
                     div.innerHTML = `<b>${item.name}</b> <span>₪${(item.price * item.qty).toFixed(2)}</span>`;
                     container.appendChild(div);
                 });
@@ -163,31 +168,31 @@
                 document.getElementById('pageSummary').classList.remove('hidden');
                 Object.keys(db.lists).forEach(id => {
                     const l = db.lists[id];
-                    let lTotal = 0; l.items.forEach(i => lTotal += (i.price * i.qty));
                     const div = document.createElement('div');
-                    div.className = "item-card p-4";
-                    div.innerHTML = `<b>${l.name}</b> ₪${lTotal.toFixed(2)}`;
+                    div.className = "item-card";
+                    div.innerHTML = `<b>${l.name}</b>`;
                     container.appendChild(div);
                 });
             }
-            document.getElementById('displayTotal').innerText = total.toFixed(2);
         }
 
         function addItem() {
             const n = document.getElementById('itemName').value;
             const p = parseFloat(document.getElementById('itemPrice').value) || 0;
             if(n) {
-                db.lists[db.currentId].items.push({name: n, price: p, qty: 1, checked: false});
-                save();
-                closeModal('inputForm');
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemPrice').value = '';
+                db.lists[db.currentId].items.push({name:n, price:p, qty:1, checked:false});
+                save(); closeModal('inputForm');
+                document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = '';
             }
         }
 
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('THEME', isDark ? 'dark' : 'light');
+        }
 
-        window.onload = render;
+        function toggleLock() { isLocked = !isLocked; document.getElementById('lockBtn').innerText = isLocked ? "🔒" : "🔓"; }
+        function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
     </script>
 </body>
 </html>
