@@ -21,7 +21,6 @@
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
         
-        /* כפתור פח - חזר למראה המקורי (לבן עם צל) ללא רקע ורוד */
         .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; cursor: pointer; }
         
         .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
@@ -79,6 +78,7 @@
                     <div id="listNameDisplay" class="text-3xl font-black flex-1 text-center" onclick="openModal('editListNameModal')"></div>
                     <div class="w-8"></div>
                 </div>
+                <div id="statusTag" class="text-[10px] font-bold mt-1 opacity-80">נעול</div>
             </div>
             <div id="itemsContainer"></div>
         </div>
@@ -120,6 +120,7 @@
     <script>
         let db = JSON.parse(localStorage.getItem('BUDGET_FINAL_V27')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let isLocked = true, activePage = 'lists', currentEditIdx = null, listToDelete = null;
+        let sortableInstance = null, sortableSummaryInstance = null;
 
         function save() { localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); render(); }
         function showPage(p) { activePage = p; render(); }
@@ -164,6 +165,7 @@
                     
                     const div = document.createElement('div');
                     div.className = "item-card p-4";
+                    div.dataset.id = id;
                     div.innerHTML = `
                         <div class="flex flex-row items-center justify-between">
                             <div class="flex items-center gap-4 flex-1">
@@ -187,6 +189,45 @@
             document.getElementById('displayPaid').innerText = paid.toFixed(2);
             document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
             document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
+            initSortable();
+        }
+
+        function initSortable() {
+            if (sortableInstance) sortableInstance.destroy();
+            if (sortableSummaryInstance) sortableSummaryInstance.destroy();
+
+            if (!isLocked) {
+                if (activePage === 'lists') {
+                    const el = document.getElementById('itemsContainer');
+                    sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                        const items = db.lists[db.currentId].items;
+                        const moved = items.splice(e.oldIndex, 1)[0];
+                        items.splice(e.newIndex, 0, moved);
+                        save();
+                    }});
+                } else {
+                    const el = document.getElementById('summaryContainer');
+                    sortableSummaryInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
+                        const keys = Object.keys(db.lists);
+                        const movedKey = keys.splice(e.oldIndex, 1)[0];
+                        keys.splice(e.newIndex, 0, movedKey);
+                        const newLists = {};
+                        keys.forEach(k => newLists[k] = db.lists[k]);
+                        db.lists = newLists;
+                        save();
+                    }});
+                }
+            }
+        }
+
+        function toggleLock() {
+            isLocked = !isLocked;
+            const btn = document.getElementById('lockBtn');
+            const path = document.getElementById('lockIconPath');
+            btn.className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`;
+            path.setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z');
+            document.getElementById('statusTag').innerText = isLocked ? "נעול" : "מצב עריכה";
+            initSortable();
         }
 
         function preparePrint() {
@@ -212,7 +253,6 @@
         function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
         function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
         function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
-        function toggleLock() { isLocked = !isLocked; document.getElementById('lockIconPath').setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z'); }
         function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
         function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
         function openEditTotalModal(idx) { currentEditIdx = idx; const item = db.lists[db.currentId].items[idx]; document.getElementById('editTotalInput').value = (item.price * item.qty).toFixed(2); openModal('editTotalModal'); }
@@ -230,7 +270,6 @@
         window.onload = function() {
             if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode');
             render();
-            // ניקוי Service Workers אם נשארו
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(rs => { for(let r of rs) r.unregister(); });
             }
