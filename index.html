@@ -18,8 +18,8 @@
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
         
-        /* תיקון הדר - הצמדה לצדדים */
-        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; width: 100%; }
+        /* תיקון הדר - לוגו בשמאל, סמלים בימין */
+        .app-header { background: white; padding: 10px 20px; display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; width: 100%; }
         
         .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
         .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
@@ -50,7 +50,7 @@
 <body>
 
     <div class="app-header no-print">
-        <h1 class="font-bold text-2xl"><span style="color: #22c55e !important;">V</span><span class="text-indigo-600">plus</span></h1>
+        <h1 class="font-bold text-2xl" style="direction: ltr;"><span style="color: #22c55e !important;">V</span><span class="text-indigo-600">plus</span></h1>
         
         <div class="flex items-center gap-2">
             <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
@@ -111,18 +111,14 @@
         </div>
 
         <div class="flex items-center justify-between">
-            <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
+            <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
             
             <div class="text-center flex-1">
                 <div class="text-[10px] opacity-70">נשאר לשלם</div>
                 <div class="text-2xl font-black text-orange-300">₪<span id="displayLeft">0.00</span></div>
             </div>
 
-            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            </button>
+            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></button>
         </div>
     </div>
 
@@ -180,16 +176,9 @@
                 Object.keys(db.lists).forEach(id => {
                     const l = db.lists[id];
                     let lTotal = 0, lPaidIndividual = 0;
-                    l.items.forEach(i => { 
-                        const subItem = i.price * i.qty; 
-                        lTotal += subItem; 
-                        if (i.checked) lPaidIndividual += subItem; 
-                    });
-                    const isSel = db.selectedInSummary.includes(id); 
-                    if (isSel) { total += lTotal; paid += lPaidIndividual; }
-                    const div = document.createElement('div');
-                    div.className = "item-card p-4";
-                    div.dataset.id = id;
+                    l.items.forEach(i => { const subItem = i.price * i.qty; lTotal += subItem; if (i.checked) lPaidIndividual += subItem; });
+                    const isSel = db.selectedInSummary.includes(id); if (isSel) { total += lTotal; paid += lPaidIndividual; }
+                    const div = document.createElement('div'); div.className = "item-card p-4"; div.dataset.id = id;
                     div.innerHTML = `<div class="flex flex-row items-center justify-between"><div class="flex items-center gap-4 flex-1"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId = '${id}'; showPage('lists');">${l.name}</span></div><div class="flex items-center gap-2"><div class="text-indigo-600 font-black text-xl ml-2">₪${lTotal.toFixed(2)}</div><button onclick="prepareDeleteList('${id}')" class="list-delete-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke="currentColor"></path></svg></button></div></div><div class="flex justify-between items-center px-2 pt-2 border-t border-gray-50 mt-2"><span class="text-[10px] text-gray-400 font-bold">שולם ברשימה:</span><span class="text-sm font-bold text-green-500">₪${lPaidIndividual.toFixed(2)}</span></div>`;
                     container.appendChild(div);
                 });
