@@ -63,8 +63,17 @@ function render() {
         document.getElementById('pageSummary').classList.remove('hidden');
         Object.keys(db.lists).forEach(id => {
             const l = db.lists[id];
-            let lT = 0; l.items.forEach(i => lT += i.price*i.qty);
-            const isSel = db.selectedInSummary.includes(id); if (isSel) total += lT;
+            let lT = 0, lP = 0;
+            l.items.forEach(i => {
+                const s = i.price * i.qty;
+                lT += s;
+                if(i.checked) lP += s; // חישוב שולם פנימי לכל רשימה
+            });
+            const isSel = db.selectedInSummary.includes(id); 
+            if (isSel) { 
+                total += lT; 
+                paid += lP; // הוספה לחישוב הכללי בבר הסגול
+            }
             const div = document.createElement('div'); div.className = "item-card p-4"; div.dataset.id = id;
             div.innerHTML = `<div class="flex justify-between items-center"><div class="flex items-center gap-4"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId='${id}'; showPage('lists')">${l.name}</span></div><div class="flex items-center gap-3"><div class="text-indigo-600 font-black text-xl">₪${lT.toFixed(2)}</div><button onclick="prepareDeleteList('${id}')" class="text-red-400 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"></path></svg></button></div></div>`;
             container.appendChild(div);
@@ -77,46 +86,38 @@ function render() {
 }
 
 function toggleLock() { isLocked = !isLocked; render(); }
-
-function addItem() { 
-    const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; 
-    if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); closeModal('inputForm'); save(); } 
-}
-
-function saveNewList() { 
-    const n = document.getElementById('newListNameInput').value.trim(); 
-    if(n){ 
-        const id = 'L'+Date.now(); db.lists[id] = {name: n, items:[]}; 
-        db.currentId = id; activePage = 'lists'; closeModal('newListModal'); save(); 
-    } 
-}
-
+function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); closeModal('inputForm'); save(); } }
+function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name: n, items:[]}; db.currentId = id; activePage = 'lists'; closeModal('newListModal'); save(); } }
 function initSortable() {
     const el = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
     if (sortableInstance) sortableInstance.destroy();
     if (el && !isLocked) {
-        sortableInstance = Sortable.create(el, { 
-            animation: 150, 
-            onEnd: function() {
-                if (activePage === 'lists') {
-                    const newOrder = Array.from(el.children).map(c => parseInt(c.getAttribute('data-id')));
-                    const items = db.lists[db.currentId].items;
-                    db.lists[db.currentId].items = newOrder.map(oldIdx => items[oldIdx]);
-                } else {
-                    const newOrder = Array.from(el.children).map(c => c.getAttribute('data-id'));
-                    const newLists = {}; newOrder.forEach(id => newLists[id] = db.lists[id]);
-                    db.lists = newLists;
-                }
-                save(); 
-            } 
-        });
+        sortableInstance = Sortable.create(el, { animation: 150, onEnd: function() {
+            if (activePage === 'lists') {
+                const newOrder = Array.from(el.children).map(c => parseInt(c.getAttribute('data-id')));
+                const items = db.lists[db.currentId].items;
+                db.lists[db.currentId].items = newOrder.map(oldIdx => items[oldIdx]);
+            } else {
+                const newOrder = Array.from(el.children).map(c => c.getAttribute('data-id'));
+                const newLists = {}; newOrder.forEach(id => newLists[id] = db.lists[id]);
+                db.lists = newLists;
+            }
+            save(); 
+        } });
     }
 }
-
 function executeClear() { db.lists[db.currentId].items = []; closeModal('confirmModal'); save(); }
 function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
 function deleteFullList() { if (listToDelete) { delete db.lists[listToDelete]; const keys = Object.keys(db.lists); if (db.currentId === listToDelete) db.currentId = keys[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); closeModal('deleteListModal'); save(); } }
-
+function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
+function openEditTotalModal(idx) { currentEditIdx = idx; openModal('editTotalModal'); }
+function saveTotal() { const val = parseFloat(document.getElementById('editTotalInput').value); if (!isNaN(val)) { const item = db.lists[db.currentId].items[currentEditIdx]; item.price = val / item.qty; save(); } closeModal('editTotalModal'); }
+function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
+function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
+function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
+function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
+function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
+function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); }
 function preparePrint() { 
     closeModal('settingsModal');
     let printArea = document.getElementById('printArea');
@@ -129,16 +130,6 @@ function preparePrint() {
     });
     printArea.innerHTML = html; window.print();
 }
-
-function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
-function openEditTotalModal(idx) { currentEditIdx = idx; openModal('editTotalModal'); }
-function saveTotal() { const val = parseFloat(document.getElementById('editTotalInput').value); if (!isNaN(val)) { const item = db.lists[db.currentId].items[currentEditIdx]; item.price = val / item.qty; save(); } closeModal('editTotalModal'); }
-function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
-function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
-function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
-function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
-function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
-function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); }
 function shareToWhatsApp() { const list = db.lists[db.currentId]; let text = `🛒 *${list.name}*\n`; list.items.forEach(i => text += `• ${i.name}: ₪${(i.price*i.qty).toFixed(2)}\n`); window.open("https://wa.me/?text=" + encodeURIComponent(text)); }
 
 window.onload = function() { if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); render(); };
