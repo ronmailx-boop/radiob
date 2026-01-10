@@ -13,22 +13,39 @@ function showPage(p) {
 }
 
 function openModal(id) { 
-    document.getElementById(id).classList.add('active'); 
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('active'); 
     if(['editListNameModal', 'editTotalModal', 'newListModal'].includes(id)) {
         const inputId = id.replace('Modal', 'Input');
-        document.getElementById(inputId).value = '';
-        setTimeout(() => document.getElementById(inputId).focus(), 100);
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+        }
     }
-    if(id === 'inputForm') setTimeout(() => document.getElementById('itemName').focus(), 100);
+    if(id === 'inputForm') {
+        const itemInput = document.getElementById('itemName');
+        if (itemInput) setTimeout(() => itemInput.focus(), 100);
+    }
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function closeModal(id) { 
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active'); 
+}
 
 function switchSTab(n) {
-    document.getElementById('sc1').classList.toggle('hidden', n !== 1);
-    document.getElementById('sc2').classList.toggle('hidden', n !== 2);
-    document.getElementById('st1').classList.toggle('active', n === 1);
-    document.getElementById('st2').classList.toggle('active', n === 2);
+    const sc1 = document.getElementById('sc1');
+    const sc2 = document.getElementById('sc2');
+    const st1 = document.getElementById('st1');
+    const st2 = document.getElementById('st2');
+    if (sc1 && sc2 && st1 && st2) {
+        sc1.classList.toggle('hidden', n !== 1);
+        sc2.classList.toggle('hidden', n !== 2);
+        st1.classList.toggle('active', n === 1);
+        st2.classList.toggle('active', n === 2);
+    }
 }
 
 function render() {
@@ -38,14 +55,21 @@ function render() {
     let total = 0, paid = 0;
 
     // עדכון כפתורי הטאבים
-    document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
-    document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
+    const tabLists = document.getElementById('tabLists');
+    const tabSummary = document.getElementById('tabSummary');
+    if (tabLists && tabSummary) {
+        tabLists.className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
+        tabSummary.className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
+    }
 
     if (activePage === 'lists') {
         const list = db.lists[db.currentId];
         document.getElementById('listNameDisplay').innerText = list.name;
-        document.getElementById('pageLists').classList.remove('hidden');
-        document.getElementById('pageSummary').classList.add('hidden');
+        const pageLists = document.getElementById('pageLists');
+        const pageSummary = document.getElementById('pageSummary');
+        if (pageLists) pageLists.classList.remove('hidden');
+        if (pageSummary) pageSummary.classList.add('hidden');
+        
         list.items.forEach((item, idx) => {
             const sub = item.price * item.qty; total += sub; if (item.checked) paid += sub;
             const div = document.createElement('div');
@@ -54,8 +78,11 @@ function render() {
             container.appendChild(div);
         });
     } else {
-        document.getElementById('pageLists').classList.add('hidden');
-        document.getElementById('pageSummary').classList.remove('hidden');
+        const pageLists = document.getElementById('pageLists');
+        const pageSummary = document.getElementById('pageSummary');
+        if (pageLists) pageLists.classList.add('hidden');
+        if (pageSummary) pageSummary.classList.remove('hidden');
+        
         Object.keys(db.lists).forEach(id => {
             const l = db.lists[id];
             let lTotal = 0, lPaidInd = 0;
@@ -73,14 +100,25 @@ function render() {
 }
 
 function initSortable() {
+    const el = document.getElementById('itemsContainer');
     if (sortableInstance) sortableInstance.destroy();
-    if (!isLocked && activePage === 'lists') {
-        sortableInstance = Sortable.create(document.getElementById('itemsContainer'), { animation: 150, onEnd: (e) => { const items = db.lists[db.currentId].items; items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]); save(); }});
+    if (el && !isLocked && activePage === 'lists') {
+        sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => { const items = db.lists[db.currentId].items; items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]); save(); }});
     }
 }
 
 function toggleLock() { isLocked = !isLocked; document.getElementById('lockBtn').className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`; document.getElementById('lockIconPath').setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z'); document.getElementById('statusTag').innerText = isLocked ? "נעול" : "עריכה"; initSortable(); }
-function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; } }
+function addItem() { 
+    const n = document.getElementById('itemName').value.trim();
+    const p = parseFloat(document.getElementById('itemPrice').value) || 0; 
+    if (n) { 
+        db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); 
+        save(); 
+        closeModal('inputForm'); 
+        document.getElementById('itemName').value = ''; 
+        document.getElementById('itemPrice').value = ''; 
+    } 
+}
 function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
 function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
 function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
