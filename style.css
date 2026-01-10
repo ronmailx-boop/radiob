@@ -1,10 +1,12 @@
 * { box-sizing: border-box; touch-action: manipulation; }
 body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 240px; min-height: 100vh; overflow-x: hidden; transition: background 0.3s; }
 .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; transition: background 0.3s; }
-.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 15px 15px 35px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 20px 15px 35px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
+
 .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
 .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
 .tab-inactive { background: white; color: #666; }
+
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 .modal-overlay.active { display: flex; }
 
@@ -12,16 +14,25 @@ body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 
 .app-header { background: white; padding: 10px 20px; display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; width: 100%; }
 .header-controls { display: flex; align-items: center; gap: 8px; direction: rtl; }
 
+.edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+.edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
+
 .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; cursor: pointer; }
 .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
 .list-delete-btn { color: #fca5a5; padding: 5px; cursor: pointer; }
+
+/* טאבים בתוך ההגדרות */
+.s-tab { flex: 1; padding: 10px; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; color: #999; }
+.s-tab.active { color: #7367f0; border-bottom: 2px solid #7367f0; }
 
 body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
 .dark-mode .app-header { background: #16213e; border-bottom: 1px solid #0f3460; }
 .dark-mode .item-card { background: #0f3460; color: white; }
 .dark-mode .tab-inactive { background: #16213e; color: #909090; }
+.dark-mode .edit-modal { background: #16213e; color: white; }
 .dark-mode .bg-white { background-color: #0f3460 !important; }
 
 @media print {
     .no-print, .bottom-bar, .app-header, .tab-btn, .modal-overlay, .trash-btn, input[type="checkbox"], button { display: none !important; }
+    body { background: white !important; }
 }
