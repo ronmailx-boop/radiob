@@ -47,15 +47,13 @@
             <div id="itemsContainer"></div>
         </div>
         <div id="pageSummary" class="hidden">
-            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100 flex items-center gap-3 select-all-card">
+            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100 flex items-center gap-3 summary-header-card">
                 <input type="checkbox" id="selectAllLists" onchange="toggleSelectAll(this.checked)" class="w-7 h-7 accent-indigo-600">
                 <span id="selectAllLabel" class="font-bold text-slate-700 text-lg">בחר את כל הרשימות</span>
             </div>
             <div id="summaryContainer"></div>
         </div>
     </div>
-
-    <div id="printArea"></div>
 
     <div class="bottom-bar text-white no-print">
         <div class="flex items-center justify-between mb-4">
@@ -77,7 +75,7 @@
                 <div class="text-[10px] opacity-70">נשאר לשלם</div>
                 <div class="text-2xl font-black text-orange-300">₪<span id="displayLeft">0.00</span></div>
             </div>
-            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2-2 0 002-2v-6a2-2 0 00-2-2H6a2-2 0 00-2 2v6a2-2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></button>
+            <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></button>
         </div>
     </div>
 
@@ -85,22 +83,33 @@
     
     <div id="inputForm" class="modal-overlay no-print">
         <div class="edit-modal">
-            <h2 class="text-xl font-bold mb-4">הוספת מוצר</h2>
+            <h2 class="text-xl font-bold mb-6 text-gray-800">הוספת מוצר</h2>
             <input type="text" id="itemName" placeholder="שם המוצר" class="modal-input">
             <input type="number" id="itemPrice" inputmode="decimal" placeholder="מחיר" class="modal-input">
-            <div class="flex gap-3">
-                <button class="bg-green-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="addItem()">הוסף</button>
-                <button class="bg-gray-100 text-gray-500 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('inputForm')">ביטול</button>
+            <div class="flex gap-3 mt-2">
+                <button class="bg-green-500 text-white flex-1 py-4 rounded-2xl font-bold shadow-md" onclick="addItem()">הוסף</button>
+                <button class="bg-gray-100 text-gray-400 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('inputForm')">ביטול</button>
             </div>
         </div>
     </div>
 
-    <div id="newListModal" class="modal-overlay no-print"><div class="edit-modal"><h2>רשימה חדשה</h2><input type="text" id="newListNameInput" placeholder="שם הרשימה" class="modal-input"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveNewList()">צור</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('newListModal')">ביטול</button></div></div></div>
-    <div id="editListNameModal" class="modal-overlay no-print"><div class="edit-modal"><h2>שינוי שם</h2><input type="text" id="editListNameInput" placeholder="הכנס שם חדש" class="modal-input"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
-    <div id="editTotalModal" class="modal-overlay no-print"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal" placeholder="הכנס מחיר חדש" class="modal-input"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveTotal()">עדכן</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('editTotalModal')">ביטול</button></div></div></div>
-    <div id="confirmModal" class="modal-overlay no-print"><div class="edit-modal"><h2 class="text-xl font-bold mb-2">למחוק הכל?</h2><p class="text-sm text-gray-400 mb-6">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות.</p><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 text-gray-500 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
-    <div id="deleteListModal" class="modal-overlay no-print"><div class="edit-modal"><h2>למחוק את הרשימה?</h2><p class="text-sm text-gray-400 mb-6">פעולה זו תמחק את כל המוצרים ברשימה לצמיתות.</p><div class="flex gap-3"><button id="confirmDeleteListBtn" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('deleteListModal')">ביטול</button></div></div></div>
+    <div id="confirmModal" class="modal-overlay no-print">
+        <div class="edit-modal">
+            <h2 class="text-xl font-bold mb-4 text-red-500">למחוק הכל?</h2>
+            <p class="text-sm text-gray-400 mb-8 px-4">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות. האם להמשיך?</p>
+            <div class="flex gap-3">
+                <button class="bg-red-500 text-white flex-1 py-4 rounded-2xl font-bold shadow-lg" onclick="executeClear()">מחק הכל</button>
+                <button class="bg-gray-100 text-gray-500 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('confirmModal')">ביטול</button>
+            </div>
+        </div>
+    </div>
 
+    <div id="newListModal" class="modal-overlay no-print"><div class="edit-modal"><h2>רשימה חדשה</h2><input type="text" id="newListNameInput" placeholder="שם הרשימה" class="modal-input"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveNewList()">צור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('newListModal')">ביטול</button></div></div></div>
+    <div id="editListNameModal" class="modal-overlay no-print"><div class="edit-modal"><h2>שינוי שם</h2><input type="text" id="editListNameInput" placeholder="הכנס שם חדש" class="modal-input"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
+    <div id="editTotalModal" class="modal-overlay no-print"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal" placeholder="הכנס מחיר חדש" class="modal-input"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-2xl font-bold" onclick="saveTotal()">עדכן</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('editTotalModal')">ביטול</button></div></div></div>
+    <div id="deleteListModal" class="modal-overlay no-print"><div class="edit-modal"><h2>למחוק את הרשימה?</h2><div class="flex gap-3"><button id="confirmDeleteListBtn" class="bg-red-500 text-white flex-1 py-4 rounded-2xl font-bold">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-2xl font-bold" onclick="closeModal('deleteListModal')">ביטול</button></div></div></div>
+
+    <div id="printArea"></div>
     <script src="script.js"></script>
 </body>
 </html>
