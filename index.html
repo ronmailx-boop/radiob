@@ -27,6 +27,7 @@
         .list-delete-btn { color: #ffb4b4; transition: 0.2s; padding: 5px; cursor: pointer; }
         .list-delete-btn:hover { color: #ef4444; }
 
+        /* Dark Mode Styles */
         body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
         .dark-mode .app-header { background: #16213e; border-bottom: 1px solid #0f3460; }
         .dark-mode .item-card { background: #0f3460; color: white; }
@@ -45,6 +46,10 @@
             .print-only { display: block !important; }
         }
         .print-only { display: none; }
+
+        /* Settings Menu Tabs */
+        .settings-tab { padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; flex: 1; text-align: center; font-weight: bold; }
+        .settings-tab.active { border-bottom: 2px solid #7367f0; color: #7367f0; }
     </style>
 </head>
 <body>
@@ -53,16 +58,19 @@
         <div class="flex items-center gap-2">
             <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
             <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
-            <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 transition-colors"><svg id="themeIcon" class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="themeIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
+            
+            <button onclick="openModal('settingsModal')" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </button>
+
             <span id="syncStatus" class="status-tag">מחובר ✅</span>
         </div>
-        <h1 class="text-indigo-600 font-bold text-xl">Vplus</h1>
-    </div>
-
-    <div id="printButtonFloating" class="hidden px-4 mt-2 no-print">
-        <button onclick="window.print()" class="w-full bg-orange-500 text-white py-3 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
-            <span>🖨️ הדפס סיכום / שמור כ-PDF</span>
-        </button>
+        <h1 class="font-bold text-xl">
+            <span style="color: #22c55e;">V</span><span class="text-indigo-600">plus</span>
+        </h1>
     </div>
 
     <div class="max-w-md mx-auto p-4">
@@ -97,6 +105,29 @@
         </div>
     </div>
 
+    <div id="settingsModal" class="modal-overlay">
+        <div class="edit-modal">
+            <h2 class="text-xl font-bold mb-4">הגדרות</h2>
+            <div class="flex mb-6 border-b border-gray-100">
+                <div id="tabSettingsView" onclick="switchSettingsTab('view')" class="settings-tab active">תצוגה</div>
+                <div id="tabSettingsActions" onclick="switchSettingsTab('actions')" class="settings-tab">פעולות</div>
+            </div>
+            
+            <div id="settingsViewContent">
+                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 text-indigo-600 py-4 rounded-2xl font-bold mb-3">מצב כהה / בהיר 🌙</button>
+            </div>
+            
+            <div id="settingsActionsContent" class="hidden">
+                <button onclick="window.print(); closeModal('settingsModal');" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
+                    <span>הדפס סיכום / שמור כ-PDF</span>
+                    <span>🖨️</span>
+                </button>
+            </div>
+            
+            <button class="w-full mt-4 text-gray-400 font-bold" onclick="closeModal('settingsModal')">סגור</button>
+        </div>
+    </div>
+
     <div class="bottom-bar text-white">
         <div class="flex justify-around mb-4 text-center">
             <div><div class="text-[10px] opacity-70">סה"כ רשימה</div><div class="text-xl font-bold">₪<span id="displayTotal">0.00</span></div></div>
@@ -127,22 +158,26 @@
 
         window.onload = function() {
             if (localStorage.getItem('G_CONN') === 'true') document.getElementById('syncStatus').style.display = 'inline-block';
-            if (localStorage.getItem('THEME') === 'dark') { document.body.classList.add('dark-mode'); updateThemeIcon(true); }
+            if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode');
             render();
         };
 
-        function toggleDarkMode() { const isDark = document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', isDark ? 'dark' : 'light'); updateThemeIcon(isDark); }
-        function updateThemeIcon(isDark) { document.getElementById('themeIconPath').setAttribute('d', isDark ? 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z' : 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'); }
-
-        function showPage(p) { 
-            activePage = p; 
-            // הצגת הכפתור הצף רק בדף הסיכום
-            document.getElementById('printButtonFloating').style.display = (p === 'summary') ? 'block' : 'none';
-            render(); 
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('THEME', isDark ? 'dark' : 'light');
         }
 
+        function switchSettingsTab(tab) {
+            document.getElementById('tabSettingsView').classList.toggle('active', tab === 'view');
+            document.getElementById('tabSettingsActions').classList.toggle('active', tab === 'actions');
+            document.getElementById('settingsViewContent').classList.toggle('hidden', tab !== 'view');
+            document.getElementById('settingsActionsContent').classList.toggle('hidden', tab !== 'actions');
+        }
+
+        function showPage(p) { activePage = p; render(); }
+
         function prepareDeleteList(id) { if (Object.keys(db.lists).length <= 1) { alert("חייבת להישאר לפחות רשימה אחת."); return; } listToDelete = id; openModal('deleteListModal'); }
-        document.getElementById('confirmDeleteListBtn').onclick = function() { if (listToDelete) { delete db.lists[listToDelete]; const idx = db.selectedInSummary.indexOf(listToDelete); if (idx > -1) db.selectedInSummary.splice(idx, 1); if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0]; save(); closeModal('deleteListModal'); listToDelete = null; } };
+        document.getElementById('confirmDeleteListBtn').onclick = function() { if (listToDelete) { delete db.lists[listToDelete]; const index = db.selectedInSummary.indexOf(listToDelete); if (index > -1) db.selectedInSummary.splice(index, 1); if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0]; save(); closeModal('deleteListModal'); listToDelete = null; } };
 
         function render() {
             const list = db.lists[db.currentId];
@@ -179,8 +214,7 @@
                     if (!isSel) div.classList.add('no-print');
                     container.appendChild(div);
                 });
-                const allSel = Object.keys(db.lists).length > 0 && Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
-                const sa = document.getElementById('selectAllLists'); if(sa) sa.checked = allSel;
+                const sa = document.getElementById('selectAllLists'); if(sa) sa.checked = Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
                 document.getElementById('printTotal').innerText = total.toFixed(2);
             }
             initSortable();
@@ -207,8 +241,6 @@
         function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
         function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
         function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank'); }
-
-        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
     </script>
 </body>
 </html>
