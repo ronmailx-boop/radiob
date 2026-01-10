@@ -4,59 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Vplus - ניהול תקציב חכם</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 240px; min-height: 100vh; overflow-x: hidden; transition: background 0.3s; }
-        .item-card { background: white; border-radius: 25px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; transition: background 0.3s; }
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 15px 15px 35px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15); }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; }
-        .tab-active { background: #7367f0; color: white; box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3); }
-        .tab-inactive { background: white; color: #666; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal-overlay.active { display: flex; }
-        
-        /* תיקון הדר - לוגו בשמאל, סמלים בימין */
-        .app-header { background: white; padding: 10px 20px; display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 2000; height: 60px; width: 100%; }
-        
-        .edit-modal { width: 90%; max-width: 400px; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
-        .edit-modal input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 20px; text-align: center; outline: none; margin-bottom: 20px; font-weight: bold; color: #7367f0; }
-        .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; cursor: pointer; }
-        .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
-        .list-delete-btn { color: #fca5a5; padding: 5px; cursor: pointer; }
-        body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
-        .dark-mode .app-header { background: #16213e; border-bottom: 1px solid #0f3460; }
-        .dark-mode .item-card { background: #0f3460; color: white; }
-        .dark-mode .tab-inactive { background: #16213e; color: #909090; }
-        .dark-mode .edit-modal { background: #16213e; color: white; }
-        .dark-mode .bg-white { background-color: #0f3460 !important; }
-        .dark-mode .trash-btn { background: #1a1a2e; }
-        @media print {
-            .no-print, .bottom-bar, .app-header, .tab-btn, .modal-overlay, .trash-btn, input[type="checkbox"], button { display: none !important; }
-            body { background: white !important; }
-            #printArea { display: block !important; padding: 20px; }
-            .print-list-section { margin-bottom: 30px; border-bottom: 2px solid #7367f0; padding-bottom: 10px; break-inside: avoid; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; direction: rtl; }
-            .print-table th, .print-table td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-            .grand-total { font-size: 24px; font-weight: 900; color: #7367f0; text-align: center; margin-top: 30px; border: 3px solid #7367f0; padding: 10px; border-radius: 12px; }
-        }
-        #printArea { display: none; }
-        .s-tab { flex: 1; padding: 10px; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; color: #999; }
-        .s-tab.active { color: #7367f0; border-bottom: 2px solid #7367f0; }
-    </style>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
 
     <div class="app-header no-print">
         <h1 class="font-bold text-2xl" style="direction: ltr;"><span style="color: #22c55e !important;">V</span><span class="text-indigo-600">plus</span></h1>
-        
         <div class="flex items-center gap-2">
-            <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="true"></div>
+            <button id="cloudBtn" onclick="handleAuthClick()" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-bold border border-indigo-100 flex items-center gap-1">
+                <span>סנכרון ענן</span>
+                <div id="cloudIndicator" class="w-2 h-2 bg-gray-300 rounded-full"></div>
+            </button>
+            <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth" data-auto_prompt="false"></div>
             <div class="g_id_signin" data-type="icon" data-shape="circle" data-size="medium"></div>
             <button onclick="openModal('settingsModal')" class="p-2 rounded-full hover:bg-gray-100">
-                <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
             </button>
         </div>
     </div>
@@ -99,25 +65,20 @@
                 <div class="text-[10px] opacity-70">סה"כ רשימה</div>
                 <div class="text-xl font-bold">₪<span id="displayTotal">0.00</span></div>
             </div>
-            
             <div class="flex-shrink-0">
                 <button onclick="openModal('inputForm')" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 text-white text-4xl font-bold">+</button>
             </div>
-
             <div class="flex-1 text-center">
                 <div class="text-[10px] opacity-70">שולם ברשימה</div>
                 <div class="text-xl font-bold">₪<span id="displayPaid">0.00</span></div>
             </div>
         </div>
-
         <div class="flex items-center justify-between">
             <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-            
             <div class="text-center flex-1">
                 <div class="text-[10px] opacity-70">נשאר לשלם</div>
                 <div class="text-2xl font-black text-orange-300">₪<span id="displayLeft">0.00</span></div>
             </div>
-
             <button id="lockBtn" onclick="toggleLock()" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="lockIconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></button>
         </div>
     </div>
@@ -127,100 +88,9 @@
     <div id="newListModal" class="modal-overlay"><div class="edit-modal"><h2>רשימה חדשה</h2><input type="text" id="newListNameInput" placeholder="שם הרשימה"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveNewList()">צור</button><button class="bg-gray-100 flex-1 py-4 rounded-xl text-gray-500 font-bold" onclick="closeModal('newListModal')">ביטול</button></div></div></div>
     <div id="editListNameModal" class="modal-overlay"><div class="edit-modal"><h2>שינוי שם</h2><input type="text" id="editListNameInput" placeholder="הכנס שם חדש"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveListName()">שמור</button><button class="bg-gray-100 flex-1 py-4 rounded-xl text-gray-500 font-bold" onclick="closeModal('editListNameModal')">ביטול</button></div></div></div>
     <div id="editTotalModal" class="modal-overlay"><div class="edit-modal"><h2>עדכון מחיר</h2><input type="number" id="editTotalInput" inputmode="decimal" placeholder="הכנס מחיר חדש"><div class="flex gap-3"><button class="bg-indigo-600 text-white flex-1 py-4 rounded-xl font-bold" onclick="saveTotal()">עדכן</button><button class="bg-gray-100 flex-1 py-4 rounded-xl text-gray-500 font-bold" onclick="closeModal('editTotalModal')">ביטול</button></div></div></div>
-    <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><p class="text-sm text-gray-400 mb-6">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות. האם להמשיך?</p><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
-    <div id="deleteListModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק את הרשימה?</h2><p class="text-sm text-gray-400 mb-6">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות. האם להמשיך?</p><div class="flex gap-3"><button id="confirmDeleteListBtn" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('deleteListModal')">ביטול</button></div></div></div>
+    <div id="confirmModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק הכל?</h2><p class="text-sm text-gray-400 mb-6">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות.</p><div class="flex gap-3"><button class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold" onclick="executeClear()">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('confirmModal')">ביטול</button></div></div></div>
+    <div id="deleteListModal" class="modal-overlay"><div class="edit-modal"><h2>למחוק את הרשימה?</h2><p class="text-sm text-gray-400 mb-6">הפעולה תמחק את כל המוצרים ברשימה זו לצמיתות.</p><div class="flex gap-3"><button id="confirmDeleteListBtn" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button class="bg-gray-100 flex-1 py-4 rounded-xl font-bold" onclick="closeModal('deleteListModal')">ביטול</button></div></div></div>
 
-    <script>
-        let db = JSON.parse(localStorage.getItem('BUDGET_FINAL_V27')) || { currentId: 'L1', selectedInSummary: [], lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
-        let isLocked = true, activePage = 'lists', currentEditIdx = null, listToDelete = null;
-        let sortableInstance = null, sortableSummaryInstance = null;
-
-        function save() { localStorage.setItem('BUDGET_FINAL_V27', JSON.stringify(db)); render(); }
-        function showPage(p) { activePage = p; render(); }
-        
-        function openModal(id) { 
-            const modal = document.getElementById(id);
-            modal.classList.add('active'); 
-            if(id === 'editListNameModal' || id === 'editTotalModal' || id === 'newListModal') {
-                const inputId = id.replace('Modal', 'Input');
-                document.getElementById(inputId).value = '';
-                setTimeout(() => document.getElementById(inputId).focus(), 100);
-            }
-            if(id === 'inputForm') setTimeout(() => document.getElementById('itemName').focus(), 100);
-        }
-        
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function switchSTab(n) { document.getElementById('sc1').classList.toggle('hidden', n!==1); document.getElementById('sc2').classList.toggle('hidden', n!==2); document.getElementById('st1').classList.toggle('active', n===1); document.getElementById('st2').classList.toggle('active', n===2); }
-
-        function render() {
-            const container = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
-            container.innerHTML = '';
-            let total = 0, paid = 0;
-
-            if (activePage === 'lists') {
-                const list = db.lists[db.currentId];
-                document.getElementById('listNameDisplay').innerText = list.name;
-                document.getElementById('pageLists').classList.remove('hidden');
-                document.getElementById('pageSummary').classList.add('hidden');
-                list.items.forEach((item, idx) => {
-                    const sub = item.price * item.qty; total += sub; if (item.checked) paid += sub;
-                    const div = document.createElement('div');
-                    div.className = "item-card";
-                    div.dataset.id = idx;
-                    div.innerHTML = `<div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3 flex-1"><input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 accent-indigo-600 flex-shrink-0"><div class="flex-1 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : ''} text-right">${item.name}</div></div><button onclick="removeItem(${idx})" class="trash-btn no-print"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke="currentColor"></path></svg></button></div><div class="flex justify-between items-center"><div class="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1 border no-print"><button onclick="changeQty(${idx}, 1)" class="text-green-500 text-2xl font-bold">+</button><span class="font-bold w-6 text-center">${item.qty}</span><button onclick="changeQty(${idx}, -1)" class="text-red-500 text-2xl font-bold">-</button></div><span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600 cursor-pointer">₪${sub.toFixed(2)}</span></div>`;
-                    container.appendChild(div);
-                });
-            } else {
-                document.getElementById('pageLists').classList.add('hidden');
-                document.getElementById('pageSummary').classList.remove('hidden');
-                Object.keys(db.lists).forEach(id => {
-                    const l = db.lists[id];
-                    let lTotal = 0, lPaidIndividual = 0;
-                    l.items.forEach(i => { const subItem = i.price * i.qty; lTotal += subItem; if (i.checked) lPaidIndividual += subItem; });
-                    const isSel = db.selectedInSummary.includes(id); if (isSel) { total += lTotal; paid += lPaidIndividual; }
-                    const div = document.createElement('div'); div.className = "item-card p-4"; div.dataset.id = id;
-                    div.innerHTML = `<div class="flex flex-row items-center justify-between"><div class="flex items-center gap-4 flex-1"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId = '${id}'; showPage('lists');">${l.name}</span></div><div class="flex items-center gap-2"><div class="text-indigo-600 font-black text-xl ml-2">₪${lTotal.toFixed(2)}</div><button onclick="prepareDeleteList('${id}')" class="list-delete-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke="currentColor"></path></svg></button></div></div><div class="flex justify-between items-center px-2 pt-2 border-t border-gray-50 mt-2"><span class="text-[10px] text-gray-400 font-bold">שולם ברשימה:</span><span class="text-sm font-bold text-green-500">₪${lPaidIndividual.toFixed(2)}</span></div>`;
-                    container.appendChild(div);
-                });
-                const sa = document.getElementById('selectAllLists'); if(sa) sa.checked = Object.keys(db.lists).length > 0 && Object.keys(db.lists).every(id => db.selectedInSummary.includes(id));
-            }
-            document.getElementById('displayTotal').innerText = total.toFixed(2);
-            document.getElementById('displayPaid').innerText = paid.toFixed(2);
-            document.getElementById('displayLeft').innerText = (total - paid).toFixed(2);
-            document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
-            document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
-            initSortable();
-        }
-
-        function initSortable() {
-            if (sortableInstance) sortableInstance.destroy();
-            if (sortableSummaryInstance) sortableSummaryInstance.destroy();
-            if (!isLocked) {
-                if (activePage === 'lists') sortableInstance = Sortable.create(document.getElementById('itemsContainer'), { animation: 150, onEnd: (e) => { const items = db.lists[db.currentId].items; items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]); save(); }});
-                else sortableSummaryInstance = Sortable.create(document.getElementById('summaryContainer'), { animation: 150, onEnd: (e) => { const keys = Object.keys(db.lists); const moved = keys.splice(e.oldIndex, 1)[0]; keys.splice(e.newIndex, 0, moved); const newLists = {}; keys.forEach(k => newLists[k] = db.lists[k]); db.lists = newLists; save(); }});
-            }
-        }
-
-        function toggleLock() { isLocked = !isLocked; document.getElementById('lockBtn').className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`; document.getElementById('lockIconPath').setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z'); document.getElementById('statusTag').innerText = isLocked ? "נעול" : "מצב עריכה"; initSortable(); }
-        function preparePrint() { const printArea = document.getElementById('printArea'); printArea.innerHTML = `<h1 style="text-align:center; color:#7367f0; font-size:28px; margin-bottom:20px;">דוח קניות מפורט - Vplus</h1>`; let grandTotal = 0; const selectedIds = db.selectedInSummary.length > 0 ? db.selectedInSummary : Object.keys(db.lists); selectedIds.forEach(id => { const list = db.lists[id]; let listTotal = 0; let listHtml = `<div class="print-list-section"><h3>${list.name}</h3><table class="print-table"><thead><tr><th>מוצר</th><th>כמות</th><th>מחיר</th><th>סה"כ</th></tr></thead><tbody>`; list.items.forEach(item => { const sub = item.price * item.qty; listTotal += sub; listHtml += `<tr><td>${item.name}</td><td>${item.qty}</td><td>₪${item.price.toFixed(2)}</td><td>₪${sub.toFixed(2)}</td></tr>`; }); listHtml += `<tr style="font-weight:bold; background:#f9f9f9;"><td colspan="3">סה"כ לרשימה:</td><td>₪${listTotal.toFixed(2)}</td></tr></tbody></table></div>`; printArea.innerHTML += listHtml; grandTotal += listTotal; }); printArea.innerHTML += `<div class="grand-total">סה"כ כולל לתשלום: ₪${grandTotal.toFixed(2)}</div>`; closeModal('settingsModal'); window.print(); }
-        function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; } }
-        function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
-        function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
-        function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
-        function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name:n, items:[]}; db.currentId = id; save(); closeModal('newListModal'); } }
-        function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
-        function openEditTotalModal(idx) { currentEditIdx = idx; openModal('editTotalModal'); }
-        function saveTotal() { const val = parseFloat(document.getElementById('editTotalInput').value); if (!isNaN(val)) { const item = db.lists[db.currentId].items[currentEditIdx]; item.price = val / item.qty; save(); } closeModal('editTotalModal'); }
-        function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
-        function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
-        function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode')?'dark':'light'); }
-        function prepareNewListModal() { openModal('newListModal'); }
-        function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
-        document.getElementById('confirmDeleteListBtn').onclick = function() { if (listToDelete) { delete db.lists[listToDelete]; if (db.currentId === listToDelete) db.currentId = Object.keys(db.lists)[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); save(); closeModal('deleteListModal'); } };
-        function shareToWhatsApp() { const list = db.lists[db.currentId]; if (list.items.length === 0) return; let text = `🛒 *${list.name}:*\n\n`; list.items.forEach(i => text += `${i.checked ? '✅' : '⬜'} *${i.name}* (x${i.qty}) - ₪${(i.price * i.qty).toFixed(2)}\n`); text += `\n💰 *סה"כ: ₪${document.getElementById('displayTotal').innerText}*`; window.open("https://wa.me/?text=" + encodeURIComponent(text)); }
-        function handleAuth(r) { localStorage.setItem('G_CONN', 'true'); }
-        window.onload = function() { if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); render(); if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(rs => { for(let r of rs) r.unregister(); }); } };
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
