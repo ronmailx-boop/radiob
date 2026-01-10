@@ -16,7 +16,7 @@ body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 
 .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; border: none; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; }
 
-/* מצב לילה */
+/* מצב לילה - תיקון כיתוב "בחר הכל" */
 body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
 .dark-mode .app-header { background: #16213e; border-bottom: 1px solid #0f3460; }
 .dark-mode .item-card, .dark-mode .bg-white { background-color: #0f3460 !important; border-color: #1a1a2e; }
