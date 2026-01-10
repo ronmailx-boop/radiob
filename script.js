@@ -18,17 +18,16 @@ function showPage(p) { activePage = p; save(); }
 
 function openModal(id) { 
     const modal = document.getElementById(id);
-    if (modal) {
-        modal.classList.add('active'); 
-        if(['editListNameModal', 'editTotalModal', 'newListModal'].includes(id)) {
-            const inputId = id.replace('Modal', 'Input');
-            const input = document.getElementById(inputId);
-            if (input) { input.value = ''; setTimeout(() => input.focus(), 100); }
-        }
-        if(id === 'inputForm') {
-            const itemInput = document.getElementById('itemName');
-            if (itemInput) setTimeout(() => itemInput.focus(), 100);
-        }
+    if (!modal) return;
+    modal.classList.add('active'); 
+    if(['editListNameModal', 'editTotalModal', 'newListModal'].includes(id)) {
+        const inputId = id.replace('Modal', 'Input');
+        const input = document.getElementById(inputId);
+        if (input) { input.value = ''; setTimeout(() => input.focus(), 100); }
+    }
+    if(id === 'inputForm') {
+        const itemInput = document.getElementById('itemName');
+        if (itemInput) setTimeout(() => itemInput.focus(), 100);
     }
 }
 
@@ -89,25 +88,32 @@ function initSortable() {
     const el = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
     if (sortableInstance) sortableInstance.destroy();
     if (el && !isLocked) {
-        sortableInstance = Sortable.create(el, { animation: 150, onEnd: (e) => {
-            if (activePage === 'lists') {
-                const items = db.lists[db.currentId].items;
-                items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]);
-            } else {
-                const keys = Object.keys(db.lists);
-                const movedKey = keys.splice(e.oldIndex, 1)[0];
-                keys.splice(e.newIndex, 0, movedKey);
-                const newLists = {};
-                keys.forEach(k => newLists[k] = db.lists[k]);
-                db.lists = newLists;
+        sortableInstance = Sortable.create(el, { 
+            animation: 150, 
+            ghostClass: 'bg-indigo-50',
+            onEnd: (e) => {
+                if (activePage === 'lists') {
+                    const items = db.lists[db.currentId].items;
+                    items.splice(e.newIndex, 0, items.splice(e.oldIndex, 1)[0]);
+                } else {
+                    const keys = Object.keys(db.lists);
+                    const movedKey = keys.splice(e.oldIndex, 1)[0];
+                    keys.splice(e.newIndex, 0, movedKey);
+                    const newLists = {};
+                    keys.forEach(k => newLists[k] = db.lists[k]);
+                    db.lists = newLists;
+                }
+                save();
             }
-            save();
-        }});
+        });
     }
 }
 
+function addItem() { 
+    const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; 
+    if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; } 
+}
 function toggleLock() { isLocked = !isLocked; document.getElementById('lockBtn').className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`; document.getElementById('lockIconPath').setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z'); document.getElementById('statusTag').innerText = isLocked ? "נעול" : "עריכה"; initSortable(); }
-function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); save(); closeModal('inputForm'); document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; } }
 function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
 function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
 function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
@@ -141,6 +147,7 @@ function preparePrint() {
     printArea.innerHTML += `<div style="font-size:24px; font-weight:900; color:#7367f0; text-align:center; border:3px solid #7367f0; padding:10px; margin-top:20px;">סה"כ כולל: ₪${grandTotal.toFixed(2)}</div>`;
     window.print(); 
 }
+
 function handleAuthClick() { alert("תשתית ענן מוכנה."); }
 function handleAuth(r) { console.log("Success"); }
 
