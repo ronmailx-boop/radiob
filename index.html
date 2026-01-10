@@ -90,10 +90,19 @@
     <div id="printArea"></div>
 
     <div class="bottom-bar text-white no-print">
-        <div class="flex justify-around mb-4 text-center">
-            <div><div class="text-[10px] opacity-70">סה"כ רשימה</div><div class="text-xl font-bold">₪<span id="displayTotal">0.00</span></div></div>
-            <div class="w-px bg-white/20 h-8 self-center"></div>
-            <div><div class="text-[10px] opacity-70">שולם ברשימה</div><div class="text-xl font-bold">₪<span id="displayPaid">0.00</span></div></div>
+        <div class="flex justify-between mb-4 text-center">
+            <div class="flex-1">
+                <div class="text-[10px] opacity-70">סה"כ רשימה</div>
+                <div class="text-lg font-bold">₪<span id="displayTotal">0.00</span></div>
+            </div>
+            <div class="flex-1">
+                <div class="text-[10px] opacity-70">נשאר לשלם</div>
+                <div class="text-lg font-bold text-orange-300">₪<span id="displayLeft">0.00</span></div>
+            </div>
+            <div class="flex-1">
+                <div class="text-[10px] opacity-70">שולם ברשימה</div>
+                <div class="text-lg font-bold">₪<span id="displayPaid">0.00</span></div>
+            </div>
         </div>
         <div class="flex items-center justify-around">
             <button onclick="openModal('confirmModal')" class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
@@ -161,13 +170,8 @@
                         lTotal += subItem; 
                         if (i.checked) lPaidIndividual += subItem; 
                     });
-                    
                     const isSel = db.selectedInSummary.includes(id); 
-                    if (isSel) { 
-                        total += lTotal; 
-                        paid += lPaidIndividual; // כאן התוקן: מוסיף לסיכום הכללי את ה"שולם" של הרשימה הנבחרת
-                    }
-                    
+                    if (isSel) { total += lTotal; paid += lPaidIndividual; }
                     const div = document.createElement('div');
                     div.className = "item-card p-4";
                     div.dataset.id = id;
@@ -178,6 +182,7 @@
             }
             document.getElementById('displayTotal').innerText = total.toFixed(2);
             document.getElementById('displayPaid').innerText = paid.toFixed(2);
+            document.getElementById('displayLeft').innerText = (total - paid).toFixed(2);
             document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : 'tab-inactive'}`;
             document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : 'tab-inactive'}`;
             initSortable();
