@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vplus</title>
+    <title>Vplus 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; transition: background 0.3s; }
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.1); }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #7367f0; z-index: 1000; padding: 12px 15px 25px 15px; border-radius: 35px 35px 0 0; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
         .item-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; }
         .tab-active { background: #7367f0; color: white; }
         .tab-inactive { background: white; color: #666; }
-        .v-logo { color: #22c55e !important; font-weight: 900; }
-        .plus-logo { color: #7367f0; font-weight: 900; }
+        
+        /* עיצוב הלוגו - V ירוקה ו-plus סגול */
+        .v-brand { color: #22c55e !important; font-weight: 900; }
+        .plus-brand { color: #7367f0; font-weight: 900; }
         
         body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
-        body.dark-mode .app-header, body.dark-mode .item-card { background: #16213e; color: white; }
-        body.dark-mode .edit-modal { background: #16213e; color: white; }
-        body.dark-mode .tab-inactive { background: #0f3460; color: #999; }
+        body.dark-mode .app-header, body.dark-mode .item-card, body.dark-mode .edit-modal, body.dark-mode .settings-panel { background: #16213e; color: white; }
 
         .s-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; }
         .s-tab.active { border-bottom: 2px solid #7367f0; color: #7367f0; }
@@ -33,16 +33,14 @@
             body { background: white !important; padding: 0 !important; }
             #pageSummary { display: block !important; }
             .item-card { border: 1px solid #eee; box-shadow: none; break-inside: avoid; }
-            .print-only { display: block !important; }
         }
-        .print-only { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="app-header bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm transition-colors no-print">
+    <div class="app-header bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm no-print">
         <div class="flex items-center gap-3">
-            <button onclick="openModal('settingsModal')" class="p-2 bg-gray-50 dark:bg-gray-800 rounded-full transition-colors">
+            <button onclick="openModal('settingsModal')" class="p-2 bg-gray-50 dark:bg-gray-800 rounded-full">
                 <svg class="w-7 h-7 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -50,18 +48,18 @@
             </button>
         </div>
         <h1 class="text-2xl">
-            <span class="v-logo">V</span><span class="plus-logo">plus</span>
+            <span class="v-brand">V</span><span class="plus-brand">plus</span>
         </h1>
     </div>
 
     <div class="max-w-md mx-auto p-4">
         <div class="flex gap-2 mb-6 no-print">
-            <div id="t1" onclick="showPage('lists')" class="tab-btn tab-active">הרשימה שלי</div>
-            <div id="t2" onclick="showPage('summary')" class="tab-btn tab-inactive">הרשימות שלי</div>
+            <div id="tab1" onclick="showPage('lists')" class="tab-btn tab-active shadow-sm">הרשימה שלי</div>
+            <div id="tab2" onclick="showPage('summary')" class="tab-btn tab-inactive shadow-sm">הרשימות שלי</div>
         </div>
 
         <div id="pageLists">
-            <div id="listNameDisplay" class="text-center text-3xl font-black mb-6 text-indigo-600"></div>
+            <div id="listNameTitle" class="text-center text-2xl font-black mb-6 text-indigo-600"></div>
             <div id="itemsContainer"></div>
         </div>
 
@@ -71,22 +69,21 @@
     </div>
 
     <div id="settingsModal" class="modal-overlay">
-        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-sm rounded-3xl p-6 shadow-2xl edit-modal">
+        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-sm rounded-3xl p-6 shadow-2xl settings-panel">
             <div class="flex mb-6">
-                <div id="st1" onclick="setSTab(1)" class="s-tab active">כללי</div>
-                <div id="st2" onclick="setSTab(2)" class="s-tab">הדפסה</div>
+                <div id="st1" onclick="switchSTab(1)" class="s-tab active">כללי</div>
+                <div id="st2" onclick="switchSTab(2)" class="s-tab">הדפסה</div>
             </div>
             
             <div id="sc1">
-                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-bold mb-4">החלף מצב לילה/יום 🌙</button>
+                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-bold mb-4">מצב לילה/יום 🌙</button>
                 <div id="g_id_onload" data-client_id="151476121869-b5lbrt5t89s8d342ftd1cg1q926518pt.apps.googleusercontent.com" data-callback="handleAuth"></div>
-                <div class="g_id_signin" data-type="standard"></div>
+                <div class="g_id_signin" data-type="standard" data-shape="pill"></div>
             </div>
             
             <div id="sc2" class="hidden">
-                <p class="text-sm text-gray-400 mb-4">יצוא הרשימות לקובץ PDF</p>
-                <button onclick="window.print()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
-                    <span>🖨️ שמור כ-PDF / הדפס</span>
+                <button onclick="window.print(); closeModal('settingsModal')" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
+                    <span>🖨️ הדפס סיכום / שמור PDF</span>
                 </button>
             </div>
             
@@ -101,10 +98,10 @@
     </div>
 
     <div id="inputForm" class="modal-overlay">
-        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-sm rounded-3xl p-6 edit-modal">
+        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-sm rounded-3xl p-6">
             <h2 class="text-xl font-bold mb-4">הוספת מוצר</h2>
-            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border dark:border-gray-700 dark:bg-gray-800 p-4 rounded-xl mb-3 text-lg">
-            <input type="number" id="itemPrice" placeholder="מחיר" class="w-full border dark:border-gray-700 dark:bg-gray-800 p-4 rounded-xl mb-4 text-lg" inputmode="decimal">
+            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border p-4 rounded-xl mb-3 dark:bg-gray-800">
+            <input type="number" id="itemPrice" placeholder="מחיר" class="w-full border p-4 rounded-xl mb-4 dark:bg-gray-800" inputmode="decimal">
             <div class="flex gap-2">
                 <button onclick="addItem()" class="bg-green-500 text-white flex-1 py-4 rounded-xl font-bold">הוסף</button>
                 <button onclick="closeModal('inputForm')" class="bg-gray-100 dark:bg-gray-800 flex-1 py-4 rounded-xl font-bold text-gray-500">ביטול</button>
@@ -113,22 +110,22 @@
     </div>
 
     <div id="confirmModal" class="modal-overlay">
-        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-sm rounded-3xl p-6 edit-modal text-center">
-            <h2 class="text-xl font-bold mb-4">למחוק את כל הרשימה?</h2>
+        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-sm rounded-3xl p-6 text-center">
+            <h2 class="text-xl font-bold mb-6">למחוק את כל הרשימה?</h2>
             <div class="flex gap-2">
-                <button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק הכל</button>
+                <button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button>
                 <button onclick="closeModal('confirmModal')" class="bg-gray-100 dark:bg-gray-800 flex-1 py-4 rounded-xl font-bold text-gray-500">ביטול</button>
             </div>
         </div>
     </div>
 
     <script>
-        // שיניתי את שם המפתח ל-V32 כדי להכריח את כרום להתייחס לזה כנתונים חדשים
-        let db = JSON.parse(localStorage.getItem('VPLUS_V32')) || { currentId: 'L1', lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+        // המפתח שונה כדי להכריח את כולם לקבל גרסה חדשה ונקייה
+        let db = JSON.parse(localStorage.getItem('VPLUS_RELOAD_2026')) || { currentId: 'L1', lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let activePage = 'lists', isLocked = true;
 
-        function save() { localStorage.setItem('VPLUS_V32', JSON.stringify(db)); render(); }
-        function handleAuth(r) { console.log("Google Authed"); }
+        function save() { localStorage.setItem('VPLUS_RELOAD_2026', JSON.stringify(db)); render(); }
+        function handleAuth(r) { console.log("Google Logged In"); }
 
         window.onload = function() {
             if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode');
@@ -137,12 +134,12 @@
 
         function showPage(p) {
             activePage = p;
-            document.getElementById('t1').className = `tab-btn ${p==='lists'?'tab-active':'tab-inactive'}`;
-            document.getElementById('t2').className = `tab-btn ${p==='summary'?'tab-active':'tab-inactive'}`;
+            document.getElementById('tab1').className = `tab-btn ${p==='lists'?'tab-active':'tab-inactive'}`;
+            document.getElementById('tab2').className = `tab-btn ${p==='summary'?'tab-active':'tab-inactive'}`;
             render();
         }
 
-        function setSTab(n) {
+        function switchSTab(n) {
             document.getElementById('st1').classList.toggle('active', n===1);
             document.getElementById('st2').classList.toggle('active', n===2);
             document.getElementById('sc1').classList.toggle('hidden', n!==1);
@@ -154,14 +151,16 @@
 
         function render() {
             const list = db.lists[db.currentId];
-            document.getElementById('listNameDisplay').innerText = list.name;
+            document.getElementById('listNameTitle').innerText = list.name;
             const container = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
             container.innerHTML = '';
+            let total = 0;
 
             if (activePage === 'lists') {
                 document.getElementById('pageLists').classList.remove('hidden');
                 document.getElementById('pageSummary').classList.add('hidden');
-                list.items.forEach((item, idx) => {
+                list.items.forEach((item) => {
+                    total += (item.price * item.qty);
                     const div = document.createElement('div');
                     div.className = "item-card flex justify-between items-center";
                     div.innerHTML = `<b>${item.name}</b> <span>₪${(item.price * item.qty).toFixed(2)}</span>`;
@@ -178,6 +177,7 @@
                     container.appendChild(div);
                 });
             }
+            document.getElementById('displayTotal').innerText = total.toFixed(2);
         }
 
         function addItem() {
