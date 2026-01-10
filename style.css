@@ -10,7 +10,6 @@ body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
 .modal-overlay.active { display: flex; }
 
-/* מודאלים לבנים אטומים */
 .edit-modal { 
     width: 90%; max-width: 400px; 
     background-color: #ffffff !important; 
@@ -18,7 +17,7 @@ body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 
     padding: 30px !important; 
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important; 
     text-align: center; color: #333333 !important;
-    border: 2px solid #eeeeee !important;
+    border: 1px solid #eeeeee !important;
 }
 
 .modal-input { 
@@ -35,8 +34,8 @@ body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 
 
 .trash-btn { width: 44px; height: 44px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; cursor: pointer; }
 .list-del-btn { color: #ef4444; cursor: pointer; padding: 5px; opacity: 0.7; }
-
 .category-separator { background: #7367f0; color: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2); }
+
 .s-tab { flex: 1; padding: 10px; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; color: #999; }
 .s-tab.active { color: #7367f0; border-bottom: 2px solid #7367f0; }
 
