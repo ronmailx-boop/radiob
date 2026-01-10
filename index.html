@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <title>Vplus - ניהול תקציב</title>
+    <title>Vplus v4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { font-family: system-ui, sans-serif; background: #f4f7fa; padding-bottom: 200px; min-height: 100vh; transition: background 0.3s; }
@@ -23,25 +19,22 @@
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
         
-        .settings-card { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-        .item-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
+        .settings-card { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 400px; text-align: center; }
+        .item-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; }
         
-        /* לשוניות בתפריט הגדרות */
-        .s-tab { flex: 1; padding: 12px; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; color: #999; transition: 0.2s; }
+        .s-tab { flex: 1; padding: 12px; cursor: pointer; border-bottom: 2px solid #eee; font-weight: bold; color: #999; }
         .s-tab.active { color: #7367f0; border-bottom: 3px solid #7367f0; }
 
-        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; }
         .tab-active { background: #7367f0; color: white; }
         .tab-inactive { background: white; color: #666; }
 
-        /* Dark Mode */
         body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
         .dark-mode .app-header, .dark-mode .item-card, .dark-mode .settings-card { background: #16213e; color: white; }
-        .dark-mode .tab-inactive { background: #0f3460; color: #999; }
 
         @media print {
             .no-print, button, .bottom-bar, .modal-overlay, .app-header { display: none !important; }
-            body { background: white !important; padding: 10px !important; }
+            body { background: white !important; padding: 0 !important; }
             #pageSummary { display: block !important; }
             .item-card { border: 1px solid #eee; box-shadow: none; break-inside: avoid; }
         }
@@ -49,18 +42,14 @@
 </head>
 <body>
 
-    <div class="app-header bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm no-print transition-colors">
-        <div class="flex items-center gap-2">
-            <button onclick="openModal('settingsModal')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-                <svg class="w-7 h-7 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </button>
-        </div>
-        <h1 class="text-2xl">
-            <span class="v-logo">V</span><span class="plus-logo">plus</span>
-        </h1>
+    <div class="app-header bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm no-print">
+        <button onclick="openModal('settingsModal')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+            <svg class="w-7 h-7 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </button>
+        <h1 class="text-2xl"><span class="v-logo">V</span><span class="plus-logo">plus</span></h1>
     </div>
 
     <div class="max-w-md mx-auto p-4">
@@ -85,19 +74,9 @@
                 <div id="st1" onclick="switchSTab(1)" class="s-tab active">תצוגה</div>
                 <div id="st2" onclick="switchSTab(2)" class="s-tab">פעולות</div>
             </div>
-            
-            <div id="sc1">
-                <button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-bold mb-4">החלף מצב לילה/יום 🌙</button>
-            </div>
-            
-            <div id="sc2" class="hidden">
-                <p class="text-sm text-gray-400 mb-4">הדפסה תשמור את הרשימות המסומנות כ-PDF</p>
-                <button onclick="window.print(); closeModal('settingsModal')" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
-                    <span>🖨️ הדפס סיכום / שמור PDF</span>
-                </button>
-            </div>
-            
-            <button onclick="closeModal('settingsModal')" class="mt-6 text-gray-400 font-bold block w-full text-center border-t pt-4">סגור הגדרות</button>
+            <div id="sc1"><button onclick="toggleDarkMode()" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 py-4 rounded-2xl font-bold mb-4">מצב לילה/יום 🌙</button></div>
+            <div id="sc2" class="hidden"><button onclick="window.print()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg">🖨️ שמור כ-PDF / הדפס</button></div>
+            <button onclick="closeModal('settingsModal')" class="mt-6 text-gray-400 font-bold block w-full border-t pt-4">סגור</button>
         </div>
     </div>
 
@@ -109,39 +88,30 @@
 
     <div id="inputForm" class="modal-overlay">
         <div class="settings-card">
-            <h2 class="text-xl font-bold mb-4">הוספת מוצר</h2>
-            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border p-4 rounded-xl mb-4 dark:bg-gray-800">
-            <button onclick="addItem()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-bold">הוסף מוצר</button>
-            <button onclick="closeModal('inputForm')" class="w-full mt-2 text-gray-400">ביטול</button>
-        </div>
-    </div>
-
-    <div id="confirmModal" class="modal-overlay">
-        <div class="settings-card">
-            <h2 class="text-xl font-bold mb-6">למחוק את כל הרשימה?</h2>
+            <h2 class="text-xl font-bold mb-4 text-indigo-600">הוספת מוצר</h2>
+            <input type="text" id="itemName" placeholder="שם המוצר" class="w-full border p-4 rounded-xl mb-3 text-lg dark:bg-gray-800">
+            <input type="number" id="itemPrice" placeholder="מחיר" class="w-full border p-4 rounded-xl mb-4 text-lg dark:bg-gray-800" inputmode="decimal">
             <div class="flex gap-2">
-                <button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button>
-                <button onclick="closeModal('confirmModal')" class="bg-gray-100 dark:bg-gray-800 flex-1 py-4 rounded-xl font-bold text-gray-500">ביטול</button>
+                <button onclick="addItem()" class="bg-green-500 text-white flex-1 py-4 rounded-xl font-bold">הוסף</button>
+                <button onclick="closeModal('inputForm')" class="bg-gray-100 dark:bg-gray-800 flex-1 py-4 rounded-xl font-bold text-gray-500">ביטול</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // ניקוי Service Workers ישנים כדי להבטיח רענון קוד
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                for(let registration of registrations) registration.unregister();
-            });
-        }
+    <div id="confirmModal" class="modal-overlay"><div class="settings-card"><h2>למחוק הכל?</h2><div class="flex gap-2 mt-4"><button onclick="executeClear()" class="bg-red-500 text-white flex-1 py-4 rounded-xl font-bold">מחק</button><button onclick="closeModal('confirmModal')" class="bg-gray-100 flex-1 py-4 rounded-xl font-bold">ביטול</button></div></div></div>
 
-        // טעינת נתונים - שימוש במפתח קבוע לשמירה על המידע ברענון
-        let db = JSON.parse(localStorage.getItem('VPLUS_DATA_STABLE')) || { currentId: 'L1', lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
+    <script>
+        // מפתח הנתונים נשאר קבוע כדי שהנתונים לא יימחקו ברענון
+        const DB_KEY = 'VPLUS_STABLE_APP';
+        let db = JSON.parse(localStorage.getItem(DB_KEY)) || { currentId: 'L1', lists: { 'L1': { name: 'הרשימה שלי', items: [] } } };
         let activePage = 'lists', isLocked = true;
 
-        function save() { 
-            localStorage.setItem('VPLUS_DATA_STABLE', JSON.stringify(db)); 
-            render(); 
+        // מחיקה אוטומטית של Service Workers שחוסמים עדכונים
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(rs => { for(let r of rs) r.unregister(); });
         }
+
+        function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); render(); }
         
         function showPage(p) {
             activePage = p;
@@ -149,16 +119,6 @@
             document.getElementById('t2').className = `tab-btn ${p==='summary'?'tab-active':'tab-inactive'}`;
             render();
         }
-
-        function switchSTab(n) {
-            document.getElementById('st1').classList.toggle('active', n===1);
-            document.getElementById('st2').classList.toggle('active', n===2);
-            document.getElementById('sc1').classList.toggle('hidden', n!==1);
-            document.getElementById('sc2').classList.toggle('hidden', n!==2);
-        }
-
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function render() {
             const list = db.lists[db.currentId];
@@ -169,10 +129,10 @@
             if (activePage === 'lists') {
                 document.getElementById('pageLists').style.display = 'block';
                 document.getElementById('pageSummary').style.display = 'none';
-                list.items.forEach(item => {
+                list.items.forEach((item, idx) => {
                     const div = document.createElement('div');
                     div.className = "item-card";
-                    div.innerHTML = `<b>${item.name}</b> <span class="text-indigo-600 font-bold">₪0.00</span>`;
+                    div.innerHTML = `<div class="flex justify-between items-center"><div><b class="text-xl">${item.name}</b><div class="text-indigo-600 font-bold">₪${(item.price * item.qty).toFixed(2)}</div></div><button onclick="removeItem(${idx})" class="text-red-300">🗑️</button></div>`;
                     container.appendChild(div);
                 });
             } else {
@@ -181,27 +141,27 @@
                 Object.keys(db.lists).forEach(id => {
                     const div = document.createElement('div');
                     div.className = "item-card";
-                    div.innerHTML = `<b>${db.lists[id].name}</b>`;
+                    div.innerHTML = `<b class="text-lg">${db.lists[id].name}</b>`;
                     container.appendChild(div);
                 });
             }
-            document.getElementById('displayTotal').innerText = "0.00";
         }
 
         function addItem() {
-            const n = document.getElementById('itemName').value;
-            if(n) {
-                db.lists[db.currentId].items.push({name:n, price:0, qty:1});
-                save(); closeModal('inputForm');
-                document.getElementById('itemName').value = '';
-            }
+            const n = document.getElementById('itemName').value, p = parseFloat(document.getElementById('itemPrice').value) || 0;
+            if(n) { db.lists[db.currentId].items.push({name:n, price:p, qty:1}); save(); closeModal('inputForm'); document.getElementById('itemName').value=''; document.getElementById('itemPrice').value=''; }
         }
 
-        function toggleDarkMode() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('THEME', isDark ? 'dark' : 'light');
+        function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
+        function switchSTab(n) {
+            document.getElementById('st1').classList.toggle('active', n===1);
+            document.getElementById('st2').classList.toggle('active', n===2);
+            document.getElementById('sc1').classList.toggle('hidden', n!==1);
+            document.getElementById('sc2').classList.toggle('hidden', n!==2);
         }
-
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode')?'dark':'light'); }
         function toggleLock() { isLocked = !isLocked; document.getElementById('lockBtn').innerText = isLocked ? "🔒" : "🔓"; }
         function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
 
