@@ -70,10 +70,7 @@ function render() {
                 if(i.checked) lP += s;
             });
             const isSel = db.selectedInSummary.includes(id); 
-            if (isSel) { 
-                total += lT; 
-                paid += lP; 
-            }
+            if (isSel) { total += lT; paid += lP; }
             const div = document.createElement('div'); div.className = "item-card p-4"; div.dataset.id = id;
             div.innerHTML = `<div class="flex justify-between items-center"><div class="flex items-center gap-4"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleSum('${id}')" class="w-7 h-7 accent-indigo-600"><span class="font-bold text-xl cursor-pointer" onclick="db.currentId='${id}'; showPage('lists')">${l.name}</span></div><div class="flex items-center gap-3"><div class="text-indigo-600 font-black text-xl">₪${lT.toFixed(2)}</div><button onclick="prepareDeleteList('${id}')" class="text-red-400 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"></path></svg></button></div></div>`;
             container.appendChild(div);
@@ -89,25 +86,21 @@ function preparePrint() {
     closeModal('settingsModal');
     let printArea = document.getElementById('printArea');
     let grandTotal = 0;
-    let html = `<h1 style="text-align:center; color:#7367f0; font-family:sans-serif;">דוח קניות מפורט - Vplus</h1>`;
+    let html = `<h1 style="text-align:center; color:#7367f0;">דוח קניות מפורט - Vplus</h1>`;
     
-    // סינון רשימות: אם נבחרו רשימות ב-Summary נדפיס רק אותן, אחרת את כולן
     const idsToPrint = db.selectedInSummary.length > 0 ? db.selectedInSummary : Object.keys(db.lists);
 
     idsToPrint.forEach(id => {
         const l = db.lists[id];
         let listTotal = 0;
-        html += `<div style="border-bottom: 2px solid #7367f0; margin-bottom: 20px; padding-bottom: 10px; font-family:sans-serif;">`;
-        html += `<h2 style="color:#333;">${l.name}</h2>`;
+        html += `<div style="border-bottom: 2px solid #7367f0; margin-bottom: 20px; padding-bottom: 10px;">`;
+        html += `<h2>${l.name}</h2>`;
         html += `<table style="width:100%; border-collapse:collapse; border:1px solid #ddd; margin-bottom:10px;">
-                    <thead>
-                        <tr style="background:#f9fafb;">
-                            <th style="padding:8px; border:1px solid #ddd; text-align:right;">מוצר</th>
-                            <th style="padding:8px; border:1px solid #ddd; text-align:center;">כמות</th>
-                            <th style="padding:8px; border:1px solid #ddd; text-align:left;">סה"כ</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+                    <thead><tr style="background:#f9fafb;">
+                        <th style="padding:8px; border:1px solid #ddd; text-align:right;">מוצר</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:center;">כמות</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:left;">סה"כ</th>
+                    </tr></thead><tbody>`;
         
         l.items.forEach(i => {
             const itemSum = i.price * i.qty;
@@ -118,22 +111,19 @@ function preparePrint() {
                         <td style="padding:8px; border:1px solid #ddd; text-align:left;">₪${itemSum.toFixed(2)}</td>
                     </tr>`;
         });
-        
         html += `</tbody></table>`;
-        html += `<div style="text-align:left; font-weight:bold; font-size:1.1em;">סיכום רשימה: ₪${listTotal.toFixed(2)}</div>`;
-        html += `</div>`;
+        html += `<div style="text-align:left; font-weight:bold;">סיכום רשימה: ₪${listTotal.toFixed(2)}</div></div>`;
         grandTotal += listTotal;
     });
     
-    html += `<div style="text-align:center; margin-top:30px; padding:15px; border:3px double #7367f0; font-size:1.5em; font-weight:900; font-family:sans-serif;">
-                סה"כ כולל לכל הרשימות: ₪${grandTotal.toFixed(2)}
+    html += `<div style="text-align:center; margin-top:30px; padding:15px; border:3px double #7367f0; font-size:1.5em; font-weight:900;">
+                סה"כ כולל: ₪${grandTotal.toFixed(2)}
             </div>`;
     
     printArea.innerHTML = html;
     window.print();
 }
 
-// שאר הפונקציות המקוריות ללא שינוי
 function toggleLock() { isLocked = !isLocked; render(); }
 function addItem() { const n = document.getElementById('itemName').value.trim(), p = parseFloat(document.getElementById('itemPrice').value) || 0; if (n) { db.lists[db.currentId].items.push({ name: n, price: p, qty: 1, checked: false }); closeModal('inputForm'); save(); } }
 function saveNewList() { const n = document.getElementById('newListNameInput').value.trim(); if(n){ const id = 'L'+Date.now(); db.lists[id] = {name: n, items:[]}; db.currentId = id; activePage = 'lists'; closeModal('newListModal'); save(); } }
@@ -141,18 +131,7 @@ function initSortable() {
     const el = document.getElementById(activePage === 'lists' ? 'itemsContainer' : 'summaryContainer');
     if (sortableInstance) sortableInstance.destroy();
     if (el && !isLocked) {
-        sortableInstance = Sortable.create(el, { animation: 150, onEnd: function() {
-            if (activePage === 'lists') {
-                const newOrder = Array.from(el.children).map(c => parseInt(c.getAttribute('data-id')));
-                const items = db.lists[db.currentId].items;
-                db.lists[db.currentId].items = newOrder.map(oldIdx => items[oldIdx]);
-            } else {
-                const newOrder = Array.from(el.children).map(c => c.getAttribute('data-id'));
-                const newLists = {}; newOrder.forEach(id => newLists[id] = db.lists[id]);
-                db.lists = newLists;
-            }
-            save(); 
-        } });
+        sortableInstance = Sortable.create(el, { animation: 150, onEnd: () => save() });
     }
 }
 function executeClear() { db.lists[db.currentId].items = []; closeModal('confirmModal'); save(); }
@@ -161,12 +140,8 @@ function deleteFullList() { if (listToDelete) { delete db.lists[listToDelete]; c
 function saveListName() { const n = document.getElementById('editListNameInput').value.trim(); if(n){ db.lists[db.currentId].name = n; save(); } closeModal('editListNameModal'); }
 function openEditTotalModal(idx) { currentEditIdx = idx; openModal('editTotalModal'); }
 function saveTotal() { const val = parseFloat(document.getElementById('editTotalInput').value); if (!isNaN(val)) { const item = db.lists[db.currentId].items[currentEditIdx]; item.price = val / item.qty; save(); } closeModal('editTotalModal'); }
-function toggleItem(i) { db.lists[db.currentId].items[i].checked = !db.lists[db.currentId].items[i].checked; save(); }
-function changeQty(i, v) { const item = db.lists[db.currentId].items[i]; if (item.qty + v >= 1) { item.qty += v; save(); } }
-function removeItem(i) { db.lists[db.currentId].items.splice(i, 1); save(); }
 function toggleSum(id) { const i = db.selectedInSummary.indexOf(id); if (i > -1) db.selectedInSummary.splice(i, 1); else db.selectedInSummary.push(id); save(); }
 function toggleSelectAll(c) { db.selectedInSummary = c ? Object.keys(db.lists) : []; save(); }
 function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('THEME', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); }
 function shareToWhatsApp() { const list = db.lists[db.currentId]; let text = `🛒 *${list.name}*\n`; list.items.forEach(i => text += `• ${i.name}: ₪${(i.price*i.qty).toFixed(2)}\n`); window.open("https://wa.me/?text=" + encodeURIComponent(text)); }
-
 window.onload = function() { if (localStorage.getItem('THEME') === 'dark') document.body.classList.add('dark-mode'); render(); };
