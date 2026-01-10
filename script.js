@@ -36,10 +36,10 @@ function render() {
     document.getElementById('tabLists').className = `tab-btn ${activePage === 'lists' ? 'tab-active' : ''}`;
     document.getElementById('tabSummary').className = `tab-btn ${activePage === 'summary' ? 'tab-active' : ''}`;
 
+    // עדכון כפתור מנעול
     const btn = document.getElementById('lockBtn');
     const path = document.getElementById('lockIconPath');
     const tag = document.getElementById('statusTag');
-    
     if (btn && path && tag) {
         btn.className = `w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 text-white transition-all ${isLocked ? 'bg-blue-600' : 'bg-orange-400'}`;
         path.setAttribute('d', isLocked ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' : 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z');
@@ -51,28 +51,12 @@ function render() {
         document.getElementById('pageSummary').classList.add('hidden');
         const list = db.lists[db.currentId];
         document.getElementById('listNameDisplay').innerText = list.name;
-        
         list.items.forEach((item, idx) => {
             const sub = item.price * item.qty; total += sub; if (item.checked) paid += sub;
             const div = document.createElement('div'); 
             div.className = "item-card";
             div.setAttribute('data-id', idx);
-            div.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center gap-3 flex-1">
-                        <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 accent-indigo-600">
-                        <div class="flex-1 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : ''}">${item.name}</div>
-                    </div>
-                    ${!isLocked ? `<button onclick="removeItem(${idx})" class="trash-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"></path></svg></button>` : ''}
-                </div>
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1 border">
-                        <button onclick="changeQty(${idx}, 1)" class="text-green-500 text-2xl font-bold">+</button>
-                        <span class="font-bold w-6 text-center">${item.qty}</span>
-                        <button onclick="changeQty(${idx}, -1)" class="text-red-500 text-2xl font-bold">-</button>
-                    </div>
-                    <span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600">₪${sub.toFixed(2)}</span>
-                </div>`;
+            div.innerHTML = `<div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3 flex-1"><input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${idx})" class="w-7 h-7 accent-indigo-600"><div class="flex-1 text-2xl font-bold ${item.checked ? 'line-through text-gray-300' : ''}">${item.name}</div></div>${!isLocked ? `<button onclick="removeItem(${idx})" class="trash-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"></path></svg></button>` : ''}</div><div class="flex justify-between items-center"><div class="flex items-center gap-3 bg-gray-50 rounded-xl px-2 py-1 border"><button onclick="changeQty(${idx}, 1)" class="text-green-500 text-2xl font-bold">+</button><span class="font-bold w-6 text-center">${item.qty}</span><button onclick="changeQty(${idx}, -1)" class="text-red-500 text-2xl font-bold">-</button></div><span onclick="openEditTotalModal(${idx})" class="text-2xl font-black text-indigo-600">₪${sub.toFixed(2)}</span></div>`;
             container.appendChild(div);
         });
     } else {
@@ -130,9 +114,17 @@ function initSortable() {
     }
 }
 
-function executeClear() { db.lists[db.currentId].items = []; save(); closeModal('confirmModal'); }
+function executeClear() { db.lists[db.currentId].items = []; closeModal('confirmModal'); save(); }
 function prepareDeleteList(id) { listToDelete = id; openModal('deleteListModal'); }
-function deleteFullList() { if (listToDelete) { delete db.lists[listToDelete]; const keys = Object.keys(db.lists); if (db.currentId === listToDelete) db.currentId = keys[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); save(); closeModal('deleteListModal'); } }
+function deleteFullList() { 
+    if (listToDelete) { 
+        delete db.lists[listToDelete]; 
+        const keys = Object.keys(db.lists); 
+        if (db.currentId === listToDelete) db.currentId = keys[0] || (db.lists['L1']={name:'הרשימה שלי', items:[]}, 'L1'); 
+        closeModal('deleteListModal'); save(); 
+    } 
+}
+
 function preparePrint() { 
     closeModal('settingsModal');
     let printArea = document.getElementById('printArea');
