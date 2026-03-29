@@ -1,7 +1,0 @@
-{
-  "name": "Vplus Pro - Life & Budget Manager",
-  "description": "An all-in-one platform for managing cash, shopping lists, notes, and reminders with AI-powered financial insights.",
-  "requestFramePermissions": [
-    "camera"
-  ]
-}
