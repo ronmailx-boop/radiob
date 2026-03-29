@@ -365,6 +365,49 @@
       color: var(--muted);
     }
 
+    .bt-hint {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .bt-detect {
+      background: rgba(232,160,32,0.1);
+      border: 1px solid rgba(232,160,32,0.25);
+      border-radius: 8px;
+      color: var(--amber);
+      font-family: inherit;
+      font-size: 0.8rem;
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
+    .bt-detect:hover { background: rgba(232,160,32,0.2); }
+
+    .bt-devices {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      width: 100%;
+    }
+
+    .bt-device-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(232,160,32,0.15);
+      border-radius: 7px;
+      color: var(--cream);
+      font-family: inherit;
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      text-align: right;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .bt-device-btn:hover { border-color: var(--amber); background: rgba(232,160,32,0.08); }
+    .bt-device-btn.selected { border-color: var(--amber); background: rgba(232,160,32,0.15); }
+
     /* ── Loading spinner ── */
     .spinner {
       display: none;
@@ -441,12 +484,15 @@
     הפעלה אוטומטית ב־Bluetooth
   </button>
   <div class="bt-panel" id="btPanel">
-    <div class="bt-label">הכנס את שם התקן הבלוטות' של הרכב שלך (כפי שמופיע בהגדרות):</div>
+    <div class="bt-label">שם התקן Bluetooth של הרכב (כפי שמופיע בהגדרות הטלפון):</div>
     <div class="bt-input-row">
-      <input class="bt-input" id="btNameInput" type="text" placeholder='לדוג׳: "My Car" או "JBL"' />
+      <input class="bt-input" id="btNameInput" type="text" placeholder='למשל: Toyota או JBL' />
       <button class="bt-save" id="btSave">שמור</button>
     </div>
+    <button class="bt-detect" id="btDetect">🔍 זהה מכשירים מחוברים</button>
+    <div class="bt-devices" id="btDevices"></div>
     <div class="bt-status" id="btStatus">לא מוגדר</div>
+    <div class="bt-hint" id="btHint"></div>
   </div>
 </div>
 
@@ -480,7 +526,6 @@
   // ── State ────────────────────────────────────────────────────────
   let isPlaying  = false;
   let isLoading  = false;
-  let prevDevices = [];
 
   // ── Play / Stop ───────────────────────────────────────────────────
   function play () {
@@ -590,52 +635,110 @@
   playBtn.addEventListener('click', togglePlay);
 
   // ── Bluetooth auto-play ───────────────────────────────────────────
-  function getBtName () { return localStorage.getItem('btDeviceName') || ''; }
+  const btToggle    = document.getElementById('btToggle');
+  const btPanel     = document.getElementById('btPanel');
+  const btNameInput = document.getElementById('btNameInput');
+  const btSave      = document.getElementById('btSave');
+  const btStatus    = document.getElementById('btStatus');
+  const btDetect    = document.getElementById('btDetect');
+  const btDevices   = document.getElementById('btDevices');
+  const btHint      = document.getElementById('btHint');
 
-  async function snapshotDevices () {
+  function getBtName () { return (localStorage.getItem('btDeviceName') || '').trim().toLowerCase(); }
+
+  // Request mic permission to unlock device labels, then enumerate
+  async function getDevicesWithLabels () {
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      return devices.filter(d => d.kind === 'audiooutput').map(d => d.label || d.deviceId);
+      // Request permission so labels are visible
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop());
+    } catch { /* permission denied – proceed anyway */ }
+    try {
+      const all = await navigator.mediaDevices.enumerateDevices();
+      return all
+        .filter(d => d.kind === 'audiooutput' || d.kind === 'audioinput')
+        .map(d => d.label)
+        .filter(Boolean)
+        .filter((v, i, a) => a.indexOf(v) === i); // unique
     } catch { return []; }
   }
 
-  async function onDeviceChange () {
-    const name = getBtName().trim().toLowerCase();
+  // Check on launch: if BT device already connected → auto-play
+  async function checkBtOnLaunch () {
+    const name = getBtName();
     if (!name) return;
-    const current = await snapshotDevices();
-    const added = current.filter(d => !prevDevices.includes(d));
-    prevDevices = current;
-    const matched = added.some(label => label.toLowerCase().includes(name));
-    if (matched && !isPlaying) play();
+    const labels = await getDevicesWithLabels();
+    const matched = labels.some(l => l.toLowerCase().includes(name));
+    if (matched && !isPlaying) {
+      setTimeout(play, 800); // small delay for UX
+    }
   }
+  checkBtOnLaunch();
 
-  async function initBluetooth () {
-    prevDevices = await snapshotDevices();
-    if (navigator.mediaDevices?.addEventListener)
-      navigator.mediaDevices.addEventListener('devicechange', onDeviceChange);
+  // Watch for device changes in real-time
+  let prevLabels = [];
+  async function initDeviceWatcher () {
+    prevLabels = await getDevicesWithLabels();
+    if (navigator.mediaDevices?.addEventListener) {
+      navigator.mediaDevices.addEventListener('devicechange', async () => {
+        const name = getBtName();
+        if (!name) return;
+        const current = await getDevicesWithLabels();
+        const added = current.filter(l => !prevLabels.includes(l));
+        prevLabels = current;
+        if (added.some(l => l.toLowerCase().includes(name)) && !isPlaying) play();
+      });
+    }
   }
-  initBluetooth();
+  initDeviceWatcher();
 
-  // ── BT Settings panel ─────────────────────────────────────────────
+  // ── BT Panel UI ──────────────────────────────────────────────────
   btToggle.addEventListener('click', () => {
     btPanel.classList.toggle('open');
     if (btPanel.classList.contains('open')) {
-      btNameInput.value = getBtName();
+      btNameInput.value = localStorage.getItem('btDeviceName') || '';
       updateBtStatus();
+      btHint.textContent = 'טיפ: לחץ "זהה מכשירים" בזמן שהרכב מחובר כדי לבחור אוטומטית.';
     }
   });
 
-  function updateBtStatus () {
-    const n = getBtName();
-    btStatus.textContent = n ? `✓ מוגדר: "${n}"` : 'לא מוגדר';
-  }
+  btDetect.addEventListener('click', async () => {
+    btDetect.textContent = '⏳ מחפש…';
+    btDetect.disabled = true;
+    const labels = await getDevicesWithLabels();
+    btDetect.textContent = '🔍 זהה מכשירים מחוברים';
+    btDetect.disabled = false;
+    btDevices.innerHTML = '';
+
+    if (!labels.length) {
+      btDevices.innerHTML = '<div style="font-size:0.75rem;color:var(--muted);text-align:center">לא נמצאו מכשירים – ודא שהרכב מחובר</div>';
+      return;
+    }
+    labels.forEach(label => {
+      const btn = document.createElement('button');
+      btn.className = 'bt-device-btn';
+      btn.textContent = label;
+      if (label.toLowerCase().includes(getBtName())) btn.classList.add('selected');
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bt-device-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        btNameInput.value = label;
+      });
+      btDevices.appendChild(btn);
+    });
+  });
 
   btSave.addEventListener('click', () => {
-    localStorage.setItem('btDeviceName', btNameInput.value.trim());
+    const val = btNameInput.value.trim();
+    localStorage.setItem('btDeviceName', val);
     updateBtStatus();
     btPanel.classList.remove('open');
   });
 
+  function updateBtStatus () {
+    const n = localStorage.getItem('btDeviceName') || '';
+    btStatus.textContent = n ? `✓ מוגדר: "${n}"` : 'לא מוגדר';
+  }
   updateBtStatus();
 
   // ── Service Worker ────────────────────────────────────────────────
