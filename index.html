@@ -11,9 +11,6 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>רשת ב׳ | כאן</title>
 
-  <!-- HLS.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
-
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -457,65 +454,62 @@
 (function () {
   'use strict';
 
-  // ── Stream URL ──────────────────────────────────────────────────
-  const STREAM_HLS = 'https://kanbet.media.kan.org.il/hls/live/2024811/2024811/kanbet_mp3/chunklist.m3u8';
-  const STREAM_MP3 = 'https://kanliveicy.media.kan.org.il/icy/kanbet_mp3';
+  // ── Stream fallback list ──────────────────────────────────────────
+  // Tried in order; on error the next one is used automatically.
+  const STREAMS = [
+    'https://playerservices.streamtheworld.com/api/livestream-redirect/KAN_BET_SC',
+    'https://kanbet.media.kan.org.il/hls/live/2024811/2024811/kanbet_mp3/chunklist.m3u8',
+    'https://kanliveicy.media.kan.org.il/icy/kanbet_mp3',
+  ];
+  let streamIndex = 0;
 
   // ── DOM ──────────────────────────────────────────────────────────
-  const audio       = document.getElementById('radio');
-  const playBtn     = document.getElementById('playBtn');
-  const vuWrap      = document.getElementById('vuWrap');
-  const statusDot   = document.getElementById('statusDot');
-  const statusText  = document.getElementById('statusText');
-  const spinner     = document.getElementById('spinner');
-  const volumeSlider= document.getElementById('volumeSlider');
-  const btToggle    = document.getElementById('btToggle');
-  const btPanel     = document.getElementById('btPanel');
-  const btNameInput = document.getElementById('btNameInput');
-  const btSave      = document.getElementById('btSave');
-  const btStatus    = document.getElementById('btStatus');
+  const audio        = document.getElementById('radio');
+  const playBtn      = document.getElementById('playBtn');
+  const vuWrap       = document.getElementById('vuWrap');
+  const statusDot    = document.getElementById('statusDot');
+  const statusText   = document.getElementById('statusText');
+  const spinner      = document.getElementById('spinner');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const btToggle     = document.getElementById('btToggle');
+  const btPanel      = document.getElementById('btPanel');
+  const btNameInput  = document.getElementById('btNameInput');
+  const btSave       = document.getElementById('btSave');
+  const btStatus     = document.getElementById('btStatus');
 
   // ── State ────────────────────────────────────────────────────────
-  let hls         = null;
-  let isPlaying   = false;
-  let isLoading   = false;
-  let btDeviceName= localStorage.getItem('btDeviceName') || '';
+  let isPlaying  = false;
+  let isLoading  = false;
   let prevDevices = [];
-
-  // ── Init HLS ──────────────────────────────────────────────────────
-  function initHls () {
-    if (hls) { hls.destroy(); hls = null; }
-
-    if (Hls.isSupported()) {
-      hls = new Hls({ lowLatencyMode: true, maxBufferLength: 30 });
-      hls.loadSource(STREAM_HLS);
-      hls.attachMedia(audio);
-      hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) handleError('שגיאת זרם');
-      });
-    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-      // Native HLS (Safari / iOS)
-      audio.src = STREAM_HLS;
-    } else {
-      // Fallback to MP3
-      audio.src = STREAM_MP3;
-    }
-  }
 
   // ── Play / Stop ───────────────────────────────────────────────────
   function play () {
     if (isPlaying || isLoading) return;
     isLoading = true;
-    setStatus('loading', 'מתחבר לשידור…');
-    initHls();
+    streamIndex = 0;
+    tryStream();
+  }
+
+  function tryStream () {
+    if (streamIndex >= STREAMS.length) {
+      handleFinalError();
+      return;
+    }
+    const url = STREAMS[streamIndex];
+    setStatus('loading', `מתחבר… (${streamIndex + 1}/${STREAMS.length})`);
+    audio.src = url;
     audio.volume = parseFloat(volumeSlider.value);
-    audio.play().catch(() => handleError('לא ניתן להפעיל'));
+    audio.load();
+    audio.play().catch(() => {
+      // Autoplay blocked – show play button, wait for user
+      isLoading = false;
+      setStatus('idle', 'לחץ להפעלה');
+    });
   }
 
   function stop () {
     audio.pause();
     audio.src = '';
-    if (hls) { hls.destroy(); hls = null; }
     isPlaying = false;
     isLoading = false;
     playBtn.classList.remove('playing');
@@ -534,34 +528,54 @@
     isLoading = false;
     playBtn.classList.add('playing');
     vuWrap.classList.add('active');
-    setStatus('on', 'בשידור חי');
+    setStatus('on', 'בשידור חי ✓');
   });
 
   audio.addEventListener('waiting', () => {
     if (isPlaying) setStatus('loading', 'מאחזר…');
   });
 
-  audio.addEventListener('stalled', () => handleError('קישור איטי, מנסה שוב…'));
-  audio.addEventListener('error',   () => handleError('שגיאת חיבור'));
+  audio.addEventListener('error', () => {
+    if (!isLoading && !isPlaying) return;
+    streamIndex++;
+    if (streamIndex < STREAMS.length) {
+      setTimeout(tryStream, 800);
+    } else {
+      handleFinalError();
+    }
+  });
+
+  audio.addEventListener('stalled', () => {
+    if (isPlaying) {
+      // Brief stall – try to recover
+      setTimeout(() => {
+        if (!isPlaying) return;
+        const t = audio.currentTime;
+        audio.load();
+        audio.currentTime = t;
+        audio.play().catch(() => {});
+      }, 3000);
+    }
+  });
+
+  // ── Error helpers ─────────────────────────────────────────────────
+  function handleFinalError () {
+    isPlaying = false;
+    isLoading = false;
+    playBtn.classList.remove('playing');
+    vuWrap.classList.remove('active');
+    setStatus('err', 'שגיאת חיבור – נסה שוב');
+    setTimeout(() => setStatus('idle', 'לחץ להפעלה'), 4000);
+  }
 
   // ── Status helper ─────────────────────────────────────────────────
   function setStatus (state, msg) {
     statusText.textContent = msg;
     statusDot.className = 'status-dot';
     spinner.classList.remove('active');
-    if (state === 'on')      { statusDot.classList.add('on'); }
-    else if (state === 'err'){ statusDot.classList.add('err'); }
-    else if (state === 'loading') { spinner.classList.add('active'); }
-  }
-
-  function handleError (msg) {
-    isPlaying = false;
-    isLoading = false;
-    playBtn.classList.remove('playing');
-    vuWrap.classList.remove('active');
-    setStatus('err', msg);
-    // Retry after 3s
-    setTimeout(() => { if (!isPlaying) { stop(); setStatus('idle', 'לחץ להפעלה'); } }, 3000);
+    if (state === 'on')           statusDot.classList.add('on');
+    else if (state === 'err')     statusDot.classList.add('err');
+    else if (state === 'loading') spinner.classList.add('active');
   }
 
   // ── Volume ───────────────────────────────────────────────────────
@@ -570,7 +584,6 @@
     audio.volume = v;
     volumeSlider.style.setProperty('--pct', (v * 100) + '%');
   });
-  // Set initial gradient
   volumeSlider.style.setProperty('--pct', (parseFloat(volumeSlider.value) * 100) + '%');
 
   // ── Play button ───────────────────────────────────────────────────
@@ -581,7 +594,6 @@
 
   async function snapshotDevices () {
     try {
-      // Enumerate audio OUTPUT devices (requires permissions)
       const devices = await navigator.mediaDevices.enumerateDevices();
       return devices.filter(d => d.kind === 'audiooutput').map(d => d.label || d.deviceId);
     } catch { return []; }
@@ -590,25 +602,18 @@
   async function onDeviceChange () {
     const name = getBtName().trim().toLowerCase();
     if (!name) return;
-
     const current = await snapshotDevices();
     const added = current.filter(d => !prevDevices.includes(d));
     prevDevices = current;
-
     const matched = added.some(label => label.toLowerCase().includes(name));
-    if (matched && !isPlaying) {
-      console.log('Bluetooth matched – auto-playing');
-      play();
-    }
+    if (matched && !isPlaying) play();
   }
 
   async function initBluetooth () {
     prevDevices = await snapshotDevices();
-    if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+    if (navigator.mediaDevices?.addEventListener)
       navigator.mediaDevices.addEventListener('devicechange', onDeviceChange);
-    }
   }
-
   initBluetooth();
 
   // ── BT Settings panel ─────────────────────────────────────────────
@@ -626,8 +631,7 @@
   }
 
   btSave.addEventListener('click', () => {
-    const val = btNameInput.value.trim();
-    localStorage.setItem('btDeviceName', val);
+    localStorage.setItem('btDeviceName', btNameInput.value.trim());
     updateBtStatus();
     btPanel.classList.remove('open');
   });
@@ -635,20 +639,16 @@
   updateBtStatus();
 
   // ── Service Worker ────────────────────────────────────────────────
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
 
-  // ── Wake Lock (keep screen on in car) ─────────────────────────────
+  // ── Wake Lock ─────────────────────────────────────────────────────
   async function requestWakeLock () {
-    if ('wakeLock' in navigator) {
+    if ('wakeLock' in navigator)
       try { await navigator.wakeLock.request('screen'); } catch {}
-    }
   }
   requestWakeLock();
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) requestWakeLock();
-  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) requestWakeLock(); });
 
 })();
 </script>
